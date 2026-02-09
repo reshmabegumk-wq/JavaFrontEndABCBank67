@@ -1,18 +1,59 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./Components/Login/Login";
+import Layout from "./Components/Layout";
+import Dashboard from "./Components/Dashboard/Dashboard";
+import Profile from "./Components/Profile/Profile";
+import DebitCard from "./Components/Services/DebitCard";
+import Checkbook from "./Components/Services/Checkbook";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-      <div>
-        <h1>React Js</h1>
-      </div>
-    </>
-  )
-}
+    <BrowserRouter>
+      <Routes>
+        {/* Login without sidebar */}
+        <Route path="/" element={<Login />} />
 
-export default App
+        {/* Dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <Layout>
+              <Dashboard />
+            </Layout>
+          }
+        />
+
+        {/* Profile */}
+        <Route
+          path="/profile"
+          element={
+            <Layout>
+              <Profile />
+            </Layout>
+          }
+        />
+
+        {/* Services */}
+        <Route
+          path="/services/debit-card"
+          element={
+            <Layout>
+              <DebitCard />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/services/checkbook"
+          element={
+            <Layout>
+              <Checkbook />
+            </Layout>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
