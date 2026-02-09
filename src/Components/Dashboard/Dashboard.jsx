@@ -29,6 +29,12 @@ const Dashboard = () => {
                     icon={<FaCreditCard />}
                     bg="#e8f5e9"
                 />
+                 <Card
+                    title="Credit Card"
+                    value="Available"
+                    icon={<FaCreditCard />}
+                    bg="#e8f5e9"
+                />
                 <Card
                     title="Checkbook"
                     value="10 Leaves Left"
