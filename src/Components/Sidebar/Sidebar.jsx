@@ -17,7 +17,7 @@ const Sidebar = () => {
         <aside
             style={{
                 width: "260px",
-                height: "100vh",
+                minHeight: "100vh",
                 background: "linear-gradient(180deg, #1e3c72, #2a5298)",
                 color: "#fff",
                 padding: "20px",
@@ -66,6 +66,16 @@ const Sidebar = () => {
                             <FaCreditCard />
                             <span>Debit Card Service</span>
                         </li>
+
+                        <li
+                            style={subMenuItemStyle}
+                            onClick={() => navigate("/services/credit-card")}
+                        >
+                            <FaCreditCard />
+                            <span>Credit Card Service</span>
+                        </li>
+
+
 
                         <li
                             style={subMenuItemStyle}

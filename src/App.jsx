@@ -5,12 +5,15 @@ import Dashboard from "./Components/Dashboard/Dashboard";
 import Profile from "./Components/Profile/Profile";
 import DebitCard from "./Components/Services/DebitCard";
 import Checkbook from "./Components/Services/Checkbook";
+import CreditCard from "./Components/Services/CreditCard";
+import DebitCardRequest from "./Components/Services/DebitCardRequest";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Login without sidebar */}
+
+        {/* Login */}
         <Route path="/" element={<Login />} />
 
         {/* Dashboard */}
@@ -33,16 +36,39 @@ const App = () => {
           }
         />
 
-        {/* Services */}
+        {/* Debit Card List Page */}
         <Route
           path="/services/debit-card"
           element={
             <Layout>
               <DebitCard />
             </Layout>
+            
           }
         />
 
+          {/* NEW: Debit Card Request Page */}
+        <Route
+          path="/services/debit-card-request"
+          element={
+            <Layout>
+              <DebitCardRequest />
+            </Layout>
+          }
+        />
+
+      
+        <Route
+  path="/services/credit-card"
+  element={
+    <Layout>
+      <CreditCard />
+    </Layout>
+  }
+/>
+
+
+        {/* Checkbook */}
         <Route
           path="/services/checkbook"
           element={
@@ -51,6 +77,7 @@ const App = () => {
             </Layout>
           }
         />
+
       </Routes>
     </BrowserRouter>
   );
