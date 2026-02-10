@@ -4,19 +4,18 @@ import Layout from "./Components/Layout";
 import Dashboard from "./Components/Dashboard/Dashboard";
 import Profile from "./Components/Profile/Profile";
 import DebitCard from "./Components/Services/DebitCard";
+import DebitCardRequest from "./Components/Services/DebitCardRequest";
 import Checkbook from "./Components/Services/Checkbook";
 import CreditCard from "./Components/Services/CreditCard";
-import DebitCardRequest from "./Components/Services/DebitCardRequest";
+import CreditCardRequest from "./Components/Services/CreditCardRequest";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
 
-        {/* Login */}
         <Route path="/" element={<Login />} />
 
-        {/* Dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -26,7 +25,6 @@ const App = () => {
           }
         />
 
-        {/* Profile */}
         <Route
           path="/profile"
           element={
@@ -36,18 +34,15 @@ const App = () => {
           }
         />
 
-        {/* Debit Card List Page */}
         <Route
           path="/services/debit-card"
           element={
             <Layout>
               <DebitCard />
             </Layout>
-            
           }
         />
 
-          {/* NEW: Debit Card Request Page */}
         <Route
           path="/services/debit-card-request"
           element={
@@ -57,18 +52,24 @@ const App = () => {
           }
         />
 
-      
         <Route
-  path="/services/credit-card"
-  element={
-    <Layout>
-      <CreditCard />
-    </Layout>
-  }
-/>
+          path="/services/credit-card"
+          element={
+            <Layout>
+              <CreditCard />
+            </Layout>
+          }
+        />
 
+        <Route
+          path="/services/credit-card-request"
+          element={
+            <Layout>
+              <CreditCardRequest />
+            </Layout>
+          }
+        />
 
-        {/* Checkbook */}
         <Route
           path="/services/checkbook"
           element={
