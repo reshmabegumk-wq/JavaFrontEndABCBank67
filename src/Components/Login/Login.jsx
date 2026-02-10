@@ -72,7 +72,7 @@ const Login = () => {
 
         try {
             const payload = {
-                userName: email,
+                email: email,
                 password: password
             }
             const response = await API.post("api/users/login", payload);
