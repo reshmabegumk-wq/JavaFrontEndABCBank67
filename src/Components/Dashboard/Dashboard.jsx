@@ -36,8 +36,8 @@ const Dashboard = () => {
                     bg="#e8f5e9"
                 />
                 <Card
-                    title="Checkbook"
-                    value="10 Leaves Left"
+                    title="Check leaves"
+                    value="Available"
                     icon={<FaBook />}
                     bg="#fff3e0"
                 />
@@ -63,7 +63,7 @@ const Dashboard = () => {
                 <ul style={{ lineHeight: "1.8", color: "#444" }}>
                     <li>Use the <b>Dashboard</b> menu to view account summary.</li>
                     <li>
-                        Go to <b>Services</b> to apply for Debit Card or Checkbook Leaves.
+                        Go to <b>Services</b> to apply for Debit Card or Check Leaves.
                     </li>
                     <li>
                         Check <b>Profile</b> to update your personal details.
