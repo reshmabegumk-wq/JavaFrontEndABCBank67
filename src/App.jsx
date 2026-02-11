@@ -8,6 +8,7 @@ import DebitCardRequest from "./Components/Services/DebitCardRequest";
 import Checkbook from "./Components/Services/Checkbook";
 import CreditCard from "./Components/Services/CreditCard";
 import CreditCardRequest from "./Components/Services/CreditCardRequest";
+import Services from "./Components/Services/Services";
 
 const App = () => {
   return (
@@ -75,6 +76,15 @@ const App = () => {
           element={
             <Layout>
               <Checkbook />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/services"
+          element={
+            <Layout>
+              <Services />
             </Layout>
           }
         />
