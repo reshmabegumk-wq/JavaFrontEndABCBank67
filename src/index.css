@@ -14,14 +14,25 @@
   /* Font */
   --font-primary: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-  /* Colors */
+  /* Colors - Light Mode (Default) */
   --color-primary: #1e3c72;
   --color-secondary: #2a5298;
   --color-bg: #f4f6f9;
-  --color-white: #ffffff;
+  --color-surface: #ffffff;
   --color-text: #1f2937;
+  --color-text-secondary: #64748b;
+  /* Added for sidebar subtext */
   --color-muted: #6b7280;
   --color-border: #e5e7eb;
+
+  /* Sidebar Specific - Light Mode */
+  --sidebar-bg: #ffffff;
+  --sidebar-text: #1e293b;
+  --sidebar-border: rgba(0, 0, 0, 0.05);
+  --sidebar-hover: #f1f5f9;
+  --sidebar-active-bg: #4361ee0d;
+  --sidebar-active-text: #4361ee;
+  --sidebar-active-border: #4361ee;
 
   /* UI */
   --radius-sm: 6px;
@@ -30,6 +41,36 @@
 
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition-speed: 0.3s;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --color-primary: #4cc9f0;
+  /* Lighter blue for dark mode */
+  --color-secondary: #4361ee;
+  --color-bg: #0f172a;
+  /* Dark slate background */
+  --color-surface: #1e293b;
+  /* Slightly lighter for cards/sidebar */
+  --color-text: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  --color-muted: #94a3b8;
+  --color-border: #334155;
+
+  /* Sidebar Specific - Dark Mode */
+  --sidebar-bg: #1e293b;
+  --sidebar-text: #f8fafc;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-hover: #334155;
+  --sidebar-active-bg: rgba(67, 97, 238, 0.2);
+  --sidebar-active-text: #60a5fa;
+  --sidebar-active-border: #60a5fa;
+
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* ==============================
@@ -49,6 +90,7 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 /* ==============================
@@ -150,10 +192,11 @@ textarea:focus {
    Cards
    ============================== */
 .card {
-  background-color: var(--color-white);
+  background-color: var(--color-surface);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
+  transition: background-color var(--transition-speed), box-shadow var(--transition-speed);
 }
 
 /* ==============================
@@ -210,6 +253,7 @@ textarea:focus {
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

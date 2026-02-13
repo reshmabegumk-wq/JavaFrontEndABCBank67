@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     FaBook,
     FaCreditCard,
@@ -28,6 +28,8 @@ import {
     FaPrint,
     FaShare
 } from "react-icons/fa";
+import API from "../../api";
+import { useSnackbar } from "../../Context/SnackbarContext";
 
 const Services = () => {
     const [selectedCategory, setSelectedCategory] = useState("all");
@@ -122,12 +124,12 @@ const Services = () => {
     const filteredServices = services.filter(service => {
         const matchesCategory = selectedCategory === "all" || service.category === selectedCategory;
         const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            service.description.toLowerCase().includes(searchQuery.toLowerCase());
+            service.description.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
 
     const getStatusColor = (status) => {
-        switch(status) {
+        switch (status) {
             case "Processing": return "#3b82f6";
             case "Under Review": return "#f59e0b";
             case "Completed": return "#10b981";
@@ -136,19 +138,204 @@ const Services = () => {
     };
 
     const ServiceForm = ({ service, onClose }) => {
+        const { showSnackbar } = useSnackbar();
         const [formData, setFormData] = useState({
-            accountType: "savings",
+            accountNumber: "",
             reason: "",
             urgent: false,
             deliveryAddress: "Registered Address",
-            agreeTerms: false
+            agreeTerms: false,
+            noOfLeaves: "",
+            dateLost: "",
+            selectedCardNumber: "",
+            requestedLimit: ""
         });
+
+        const [accounts, setAccounts] = useState([]);
+        const [cards, setCards] = useState([]);
+        const [submitting, setSubmitting] = useState(false);
+
+        // Load accounts from localStorage
+        useEffect(() => {
+            const accs = [];
+            const savings = localStorage.getItem("savingsAccount");
+            const current = localStorage.getItem("currentAccount");
+
+            if (savings) accs.push({ type: "Savings", number: savings });
+            if (current) accs.push({ type: "Current", number: current });
+
+            setAccounts(accs);
+            if (accs.length > 0) {
+                setFormData(prev => ({ ...prev, accountNumber: accs[0].number }));
+            }
+        }, []);
+
+        // Fetch cards for all accounts
+        useEffect(() => {
+            const fetchAllCards = async () => {
+                if (accounts.length === 0) return;
+
+                let allCards = [];
+                for (const acc of accounts) {
+                    try {
+                        const response = await API.get(`account/userCardList/${acc.number}`);
+                        if (response.data && response.data.status && Array.isArray(response.data.data)) {
+                            const accCards = response.data.data.map(card => ({
+                                ...card,
+                                accountNumber: acc.number, // Link card to account
+                                display: `${card.cardTypeName || "Card"} - ${String(card.cardNumber).slice(-4)}`
+                            }));
+                            allCards = [...allCards, ...accCards];
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching cards for account ${acc.number}:`, error);
+                    }
+                }
+                setCards(allCards);
+            };
+
+            fetchAllCards();
+        }, [accounts]);
+
+        const handleSubmit = async () => {
+            if (service.id === "cheque-book") {
+                setSubmitting(true);
+                try {
+                    const payload = {
+                        noOfLeaves: Number(formData.noOfLeaves),
+                        accountNumber: Number(formData.accountNumber)
+                    };
+                    console.log("Sending Cheque Request:", payload);
+                    const response = await API.post("chequeRequest/save", payload);
+                    console.log("Cheque Request Response:", response.data);
+
+                    showSnackbar("success", "Cheque Book Requested Successfully!");
+
+                    setAppliedServices([...appliedServices, {
+                        ...service,
+                        id: Math.random().toString(),
+                        status: "Processing",
+                        date: new Date().toLocaleDateString()
+                    }]);
+                    onClose();
+                } catch (error) {
+                    console.error("Error requesting cheque book:", error);
+                    showSnackbar("error", "Failed to request cheque book. Please try again.");
+                } finally {
+                    setSubmitting(false);
+                }
+
+            } else if (service.id === "general-query") {
+                setSubmitting(true);
+                try {
+                    const payload = {
+                        customerQuery: formData.queries,
+                        accountNumber: Number(formData.accountNumber)
+                    };
+                    console.log("Sending Query Request:", payload);
+                    const response = await API.post("queriesRequest/save", payload);
+                    console.log("Query Request Response:", response.data);
+
+                    showSnackbar("success", "Query Submitted Successfully!");
+
+                    setAppliedServices([...appliedServices, {
+                        ...service,
+                        id: Math.random().toString(),
+                        status: "Received",
+                        date: new Date().toLocaleDateString()
+                    }]);
+                    onClose();
+                } catch (error) {
+                    console.error("Error submitting query:", error);
+                    showSnackbar("error", "Failed to submit query. Please try again.");
+                } finally {
+                    setSubmitting(false);
+                }
+            } else if (service.id === "stolen-card") {
+                setSubmitting(true);
+                try {
+                    // Find the full card object to get the account number
+                    const selectedCard = cards.find(c => String(c.cardNumber) === String(formData.selectedCardNumber));
+
+                    if (!selectedCard) {
+                        showSnackbar("error", "Please select a valid card.");
+                        setSubmitting(false);
+                        return;
+                    }
+
+                    const payload = {
+                        lostCardStolenDate: formData.dateLost,
+                        lostCardNumber: Number(formData.selectedCardNumber),
+                        accountNumber: Number(selectedCard.accountNumber)
+                    };
+                    console.log("Sending Lost Card Report:", payload);
+                    const response = await API.post("lostCard/save", payload);
+                    console.log("Lost Card Response:", response.data);
+
+                    showSnackbar("success", "Card Reported Lost Successfully!");
+
+                    setAppliedServices([...appliedServices, {
+                        ...service,
+                        id: Math.random().toString(),
+                        status: "Blocked",
+                        date: new Date().toLocaleDateString()
+                    }]);
+                    onClose();
+                } catch (error) {
+                    console.error("Error reporting lost card:", error);
+                    showSnackbar("error", "Failed to report lost card. Please try again.");
+                } finally {
+                    setSubmitting(false);
+                }
+
+            } else if (service.id === "credit-limit") {
+                setSubmitting(true);
+                try {
+                    // Find the full card object to get the account number
+                    const selectedCard = cards.find(c => String(c.cardNumber) === String(formData.selectedCardNumber));
+
+                    if (!selectedCard) {
+                        showSnackbar("error", "Please select a valid card.");
+                        setSubmitting(false);
+                        return;
+                    }
+
+                    const payload = {
+                        requestedLimit: Number(formData.requestedLimit),
+                        accountNumber: Number(selectedCard.accountNumber)
+                    };
+                    console.log("Sending Credit Limit Request:", payload);
+                    const response = await API.post("creditLimit/save", payload);
+                    console.log("Credit Limit Response:", response.data);
+
+                    showSnackbar("success", "Credit Limit Increase Requested Successfully!");
+
+                    setAppliedServices([...appliedServices, {
+                        ...service,
+                        id: Math.random().toString(),
+                        status: "Under Review",
+                        date: new Date().toLocaleDateString()
+                    }]);
+                    onClose();
+                } catch (error) {
+                    console.error("Error requesting credit limit:", error);
+                    showSnackbar("error", "Failed to request credit limit. Please try again.");
+                } finally {
+                    setSubmitting(false);
+                }
+            } else {
+                // Mock submission for other services
+                setAppliedServices([...appliedServices, { ...service, id: Math.random().toString() }]);
+                onClose();
+                showSnackbar("success", "Service requested successfully (Mock)");
+            }
+        };
 
         return (
             <div style={styles.formOverlay}>
                 <div style={styles.formContainer}>
                     <div style={styles.formHeader}>
-                        <div style={{...styles.formIcon, backgroundColor: service.bgColor, color: service.color}}>
+                        <div style={{ ...styles.formIcon, backgroundColor: service.bgColor, color: service.color }}>
                             <service.icon size={24} />
                         </div>
                         <div style={styles.formTitleSection}>
@@ -176,54 +363,56 @@ const Services = () => {
                             )}
                         </div>
 
-                        <div style={styles.formGroup}>
-                            <label style={styles.formLabel}>Select Account</label>
-                            <select 
-                                style={styles.formSelect}
-                                value={formData.accountType}
-                                onChange={(e) => setFormData({...formData, accountType: e.target.value})}
-                            >
-                                <option value="savings">Savings Account (••••3456)</option>
-                                <option value="current">Current Account (••••7890)</option>
-                                <option value="salary">Salary Account (••••2345)</option>
-                            </select>
-                        </div>
+                        {service.id === "cheque-book" && (
+                            <div style={styles.formGroup}>
+                                <label style={styles.formLabel}>Select Account</label>
+                                <select
+                                    style={styles.formSelect}
+                                    value={formData.accountNumber}
+                                    onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                                >
+                                    {accounts.map(acc => (
+                                        <option key={acc.number} value={acc.number}>
+                                            {acc.type} Account - {acc.number}
+                                        </option>
+                                    ))}
+                                    {accounts.length === 0 && <option value="">No accounts found</option>}
+                                </select>
+                            </div>
+                        )}
 
                         {service.id === "credit-limit" && (
                             <>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Current Credit Limit</label>
-                                    <div style={styles.formInputGroup}>
-                                        <span style={styles.formCurrency}>₹</span>
-                                        <input 
-                                            type="text" 
-                                            style={styles.formInput} 
-                                            value="3,00,000"
-                                            disabled
-                                        />
-                                    </div>
+                                    <label style={styles.formLabel}>Select Card</label>
+                                    <select
+                                        style={styles.formSelect}
+                                        value={formData.selectedCardNumber}
+                                        onChange={(e) => setFormData({ ...formData, selectedCardNumber: e.target.value })}
+                                    >
+                                        <option value="">Select a card</option>
+                                        {cards.map(card => (
+                                            <option key={card.cardNumber} value={card.cardNumber}>
+                                                {card.cardTypeName || "Card"} - {String(card.cardNumber).slice(-4)}
+                                            </option>
+                                        ))}
+                                        {cards.length === 0 && <option value="" disabled>No cards found</option>}
+                                    </select>
                                 </div>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Requested Credit Limit</label>
+                                    <label style={styles.formLabel}>Requested New Limit</label>
                                     <div style={styles.formInputGroup}>
                                         <span style={styles.formCurrency}>₹</span>
-                                        <input 
-                                            type="text" 
-                                            style={styles.formInput} 
+                                        <input
+                                            type="number"
+                                            style={styles.formInput}
+                                            value={formData.requestedLimit}
+                                            onChange={(e) => setFormData({ ...formData, requestedLimit: e.target.value })}
                                             placeholder="Enter desired limit"
+                                            min="0"
                                         />
                                     </div>
                                     <span style={styles.formHint}>Maximum limit: ₹10,00,000</span>
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Reason for Limit Increase</label>
-                                    <select style={styles.formSelect}>
-                                        <option value="">Select reason</option>
-                                        <option value="travel">International Travel</option>
-                                        <option value="purchase">High Value Purchase</option>
-                                        <option value="business">Business Expenses</option>
-                                        <option value="other">Other</option>
-                                    </select>
                                 </div>
                             </>
                         )}
@@ -231,26 +420,25 @@ const Services = () => {
                         {service.id === "cheque-book" && (
                             <>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Cheque Book Type</label>
-                                    <div style={styles.radioGroup}>
-                                        <label style={styles.radioLabel}>
-                                            <input type="radio" name="chequeType" defaultChecked /> Standard (25 leaves)
-                                        </label>
-                                        <label style={styles.radioLabel}>
-                                            <input type="radio" name="chequeType" /> Standard (50 leaves)
-                                        </label>
-                                        <label style={styles.radioLabel}>
-                                            <input type="radio" name="chequeType" /> Premium (100 leaves)
-                                        </label>
-                                    </div>
+                                    <label style={styles.formLabel}>Number of Leaves</label>
+                                    <input
+                                        type="number"
+                                        style={styles.formInput}
+                                        value={formData.noOfLeaves}
+                                        onChange={(e) => setFormData({ ...formData, noOfLeaves: e.target.value })}
+                                        placeholder="Enter number of leaves"
+                                        min="1"
+                                    />
                                 </div>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Delivery Address</label>
-                                    <select style={styles.formSelect}>
-                                        <option>Registered Office Address</option>
-                                        <option>Residential Address</option>
-                                        <option>Branch Pickup</option>
-                                    </select>
+                                    <label style={styles.formLabel}>Queries (Optional)</label>
+                                    <textarea
+                                        style={styles.formTextarea}
+                                        value={formData.queries || ""}
+                                        onChange={(e) => setFormData({ ...formData, queries: e.target.value })}
+                                        placeholder="Any specific queries?"
+                                        rows="2"
+                                    />
                                 </div>
                             </>
                         )}
@@ -258,51 +446,71 @@ const Services = () => {
                         {service.id === "stolen-card" && (
                             <>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Card Type</label>
-                                    <select style={styles.formSelect}>
-                                        <option value="">Select card</option>
-                                        <option value="debit">Debit Card (••••4567)</option>
-                                        <option value="credit">Credit Card (••••8901)</option>
-                                        <option value="business">Business Card (••••2345)</option>
+                                    <label style={styles.formLabel}>Select Lost Card</label>
+                                    <select
+                                        style={styles.formSelect}
+                                        value={formData.selectedCardNumber}
+                                        onChange={(e) => setFormData({ ...formData, selectedCardNumber: e.target.value })}
+                                    >
+                                        <option value="">Select a card</option>
+                                        {cards.map(card => (
+                                            <option key={card.cardNumber} value={card.cardNumber}>
+                                                {card.cardTypeName || "Card"} - {String(card.cardNumber).slice(-4)}
+                                            </option>
+                                        ))}
+                                        {cards.length === 0 && <option value="" disabled>No cards found</option>}
                                     </select>
                                 </div>
                                 <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Last Transaction Amount</label>
-                                    <input 
-                                        type="text" 
-                                        style={styles.formInput} 
-                                        placeholder="Enter last transaction amount if known"
-                                    />
-                                </div>
-                                <div style={styles.formGroup}>
-                                    <label style={styles.formLabel}>Additional Comments</label>
-                                    <textarea 
-                                        style={styles.formTextarea}
-                                        placeholder="Please provide details of when and where the card was lost/stolen"
-                                        rows="3"
+                                    <label style={styles.formLabel}>Date Lost</label>
+                                    <input
+                                        type="date"
+                                        style={styles.formInput}
+                                        value={formData.dateLost}
+                                        onChange={(e) => setFormData({ ...formData, dateLost: e.target.value })}
+                                        max={new Date().toISOString().split("T")[0]}
                                     />
                                 </div>
                             </>
                         )}
 
                         {service.id === "general-query" && (
-                            <div style={styles.formGroup}>
-                                <label style={styles.formLabel}>Your Query</label>
-                                <textarea 
-                                    style={styles.formTextarea}
-                                    placeholder="Type your question here..."
-                                    rows="4"
-                                />
-                            </div>
+                            <>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.formLabel}>Select Account</label>
+                                    <select
+                                        style={styles.formSelect}
+                                        value={formData.accountNumber}
+                                        onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                                    >
+                                        {accounts.map(acc => (
+                                            <option key={acc.number} value={acc.number}>
+                                                {acc.type} Account - {acc.number}
+                                            </option>
+                                        ))}
+                                        {accounts.length === 0 && <option value="">No accounts found</option>}
+                                    </select>
+                                </div>
+                                <div style={styles.formGroup}>
+                                    <label style={styles.formLabel}>Your Query</label>
+                                    <textarea
+                                        style={styles.formTextarea}
+                                        value={formData.queries || ""}
+                                        onChange={(e) => setFormData({ ...formData, queries: e.target.value })}
+                                        placeholder="Type your question here..."
+                                        rows="4"
+                                    />
+                                </div>
+                            </>
                         )}
 
                         <div style={styles.formGroup}>
                             <label style={styles.checkboxLabel}>
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     style={styles.checkbox}
                                     checked={formData.agreeTerms}
-                                    onChange={(e) => setFormData({...formData, agreeTerms: e.target.checked})}
+                                    onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
                                 />
                                 I confirm that the information provided is correct and I agree to the terms and conditions
                             </label>
@@ -311,20 +519,34 @@ const Services = () => {
 
                     <div style={styles.formFooter}>
                         <button style={styles.cancelBtn} onClick={onClose}>Cancel</button>
-                        <button 
+                        <button
                             style={{
                                 ...styles.submitBtn,
-                                opacity: formData.agreeTerms ? 1 : 0.5,
-                                cursor: formData.agreeTerms ? 'pointer' : 'not-allowed'
+                                opacity: (formData.agreeTerms && !submitting &&
+                                    (service.id !== "cheque-book" || formData.noOfLeaves) &&
+                                    (service.id !== "general-query" || formData.queries) &&
+                                    (service.id !== "stolen-card" || formData.selectedCardNumber) &&
+                                    (service.id !== "credit-limit" || (formData.selectedCardNumber && formData.requestedLimit))
+                                ) ? 1 : 0.5,
+                                cursor: (formData.agreeTerms && !submitting &&
+                                    (service.id !== "cheque-book" || formData.noOfLeaves) &&
+                                    (service.id !== "general-query" || formData.queries) &&
+                                    (service.id !== "stolen-card" || formData.selectedCardNumber) &&
+                                    (service.id !== "credit-limit" || (formData.selectedCardNumber && formData.requestedLimit))
+                                ) ? 'pointer' : 'not-allowed'
                             }}
-                            disabled={!formData.agreeTerms}
-                            onClick={() => {
-                                setAppliedServices([...appliedServices, { ...service, id: Math.random().toString() }]);
-                                onClose();
-                            }}
+                            disabled={
+                                !formData.agreeTerms ||
+                                submitting ||
+                                (service.id === "cheque-book" && !formData.noOfLeaves) ||
+                                (service.id === "general-query" && !formData.queries) ||
+                                (service.id === "stolen-card" && !formData.selectedCardNumber) ||
+                                (service.id === "credit-limit" && (!formData.selectedCardNumber || !formData.requestedLimit))
+                            }
+                            onClick={handleSubmit}
                         >
-                            Submit Request
-                            <FaArrowRight style={{ marginLeft: '8px' }} size={14} />
+                            {submitting ? "Submitting..." : "Submit Request"}
+                            {!submitting && <FaArrowRight style={{ marginLeft: '8px' }} size={14} />}
                         </button>
                     </div>
                 </div>
@@ -376,11 +598,11 @@ const Services = () => {
                                 {serviceCategories.find(cat => cat.id === service.category)?.name}
                             </div>
                         </div>
-                        
+
                         <div style={styles.serviceContent}>
                             <h3 style={styles.serviceTitle}>{service.title}</h3>
                             <p style={styles.serviceDescription}>{service.description}</p>
-                            
+
                             <div style={styles.serviceMeta}>
                                 <div style={styles.metaItem}>
                                     <FaClock size={12} color="#64748b" />
@@ -401,7 +623,7 @@ const Services = () => {
                             )}
                         </div>
 
-                        <button 
+                        <button
                             style={styles.applyBtn}
                             onClick={() => setShowServiceForm(service)}
                         >
@@ -414,29 +636,11 @@ const Services = () => {
 
             {/* Service Form Modal */}
             {showServiceForm && (
-                <ServiceForm 
-                    service={showServiceForm} 
-                    onClose={() => setShowServiceForm(null)} 
+                <ServiceForm
+                    service={showServiceForm}
+                    onClose={() => setShowServiceForm(null)}
                 />
             )}
-
-            {/* Quick Support */}
-            <div style={styles.supportSection}>
-                <div style={styles.supportCard}>
-                    <div style={styles.supportIcon}>
-                        <FaQuestionCircle size={24} color="#4361ee" />
-                    </div>
-                    <div style={styles.supportContent}>
-                        <h3 style={styles.supportTitle}>Need immediate assistance?</h3>
-                        <p style={styles.supportText}>
-                            Our customer support is available 24/7 for urgent requests
-                        </p>
-                    </div>
-                    <button style={styles.supportBtn}>
-                        Contact Support
-                    </button>
-                </div>
-            </div>
         </div>
     );
 };
@@ -462,13 +666,13 @@ const styles = {
     title: {
         fontSize: "32px",
         fontWeight: "700",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: "0 0 8px 0",
         letterSpacing: "-0.02em",
     },
     subtitle: {
         fontSize: "16px",
-        color: "#64748b",
+        color: "var(--color-muted)",
         margin: 0,
     },
     statsCard: {
@@ -476,10 +680,10 @@ const styles = {
         alignItems: "center",
         gap: "24px",
         padding: "16px 24px",
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "16px",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
+        border: "1px solid var(--color-border)",
+        boxShadow: "var(--shadow-sm)",
     },
     statItem: {
         display: "flex",
@@ -488,25 +692,25 @@ const styles = {
     },
     statLabel: {
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-muted)",
         marginBottom: "4px",
     },
     statValue: {
         fontSize: "24px",
         fontWeight: "700",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     statDivider: {
         width: "1px",
         height: "40px",
-        background: "#e2e8f0",
+        background: "var(--color-border)",
     },
     activeRequests: {
         marginBottom: "40px",
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
     },
     sectionHeader: {
         display: "flex",
@@ -522,7 +726,7 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: 0,
     },
     viewAllBtn: {
@@ -540,9 +744,9 @@ const styles = {
     },
     requestCard: {
         padding: "20px",
-        background: "#f8fafc",
+        background: "var(--color-bg)",
         borderRadius: "16px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
     },
     requestHeader: {
         display: "flex",
@@ -552,7 +756,7 @@ const styles = {
     },
     requestRef: {
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-text-secondary)",
         fontWeight: "500",
     },
     requestStatus: {
@@ -564,7 +768,7 @@ const styles = {
     requestService: {
         fontSize: "16px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: "0 0 12px 0",
     },
     requestDetails: {
@@ -580,12 +784,12 @@ const styles = {
     },
     requestDetailText: {
         fontSize: "13px",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
     },
     progressBar: {
         width: "100%",
         height: "4px",
-        background: "#e2e8f0",
+        background: "var(--color-border)",
         borderRadius: "2px",
         overflow: "hidden",
     },
@@ -604,10 +808,10 @@ const styles = {
         alignItems: "center",
         gap: "8px",
         padding: "10px 20px",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
         borderRadius: "40px",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
         fontSize: "14px",
         fontWeight: "500",
         cursor: "pointer",
@@ -630,20 +834,21 @@ const styles = {
         gap: "12px",
         padding: "0 20px",
         height: "50px",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
         borderRadius: "14px",
         transition: "all 0.2s",
     },
     searchIcon: {
         flexShrink: 0,
+        color: "var(--color-muted)",
     },
     searchInput: {
         flex: 1,
         border: "none",
         outline: "none",
         fontSize: "15px",
-        color: "#0f172a",
+        color: "var(--color-text)",
         background: "transparent",
         padding: 0,
     },
@@ -653,10 +858,10 @@ const styles = {
         gap: "8px",
         padding: "0 24px",
         height: "50px",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
         borderRadius: "14px",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
         fontSize: "14px",
         fontWeight: "500",
         cursor: "pointer",
@@ -669,10 +874,10 @@ const styles = {
     },
     serviceCard: {
         position: "relative",
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
         transition: "all 0.2s",
         display: "flex",
         flexDirection: "column",
@@ -715,10 +920,10 @@ const styles = {
     },
     serviceCategory: {
         fontSize: "13px",
-        color: "#64748b",
+        color: "var(--color-text-secondary)",
         fontWeight: "500",
         padding: "4px 12px",
-        background: "#f8fafc",
+        background: "var(--color-bg)",
         borderRadius: "20px",
     },
     serviceContent: {
@@ -727,12 +932,12 @@ const styles = {
     serviceTitle: {
         fontSize: "18px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: "0 0 8px 0",
     },
     serviceDescription: {
         fontSize: "14px",
-        color: "#64748b",
+        color: "var(--color-muted)",
         lineHeight: "1.5",
         margin: "0 0 16px 0",
     },
@@ -746,7 +951,7 @@ const styles = {
         alignItems: "center",
         gap: "6px",
         fontSize: "13px",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
     },
     metaText: {
         fontSize: "13px",
@@ -761,15 +966,15 @@ const styles = {
     },
     documentsLabel: {
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-muted)",
     },
     documentTag: {
         padding: "4px 10px",
-        background: "#f1f5f9",
+        background: "var(--color-bg)",
         borderRadius: "20px",
         fontSize: "11px",
         fontWeight: "500",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
     },
     applyBtn: {
         display: "flex",
@@ -777,10 +982,10 @@ const styles = {
         justifyContent: "space-between",
         width: "100%",
         padding: "14px 20px",
-        background: "#f8fafc",
-        border: "1px solid #e2e8f0",
+        background: "var(--color-bg)",
+        border: "1px solid var(--color-border)",
         borderRadius: "12px",
-        color: "#0f172a",
+        color: "var(--color-text)",
         fontSize: "14px",
         fontWeight: "600",
         cursor: "pointer",

@@ -74,15 +74,16 @@ const Login = () => {
         setIsLoading(true);
         try {
             const payload = { email, password };
-            const response = await API.post("api/users/login", payload);
-            const roleId = response?.data?.roleId;
+            const response = await API.post("users/login", payload);
+            const roleId = response?.data?.data?.roleId;
+            console.log(roleId, "response");
+
             if (roleId === 2) {
                 showSnackbar("success", "Login successful!...");
                 navigate("/dashboard");
-                localStorage.setItem("token", response?.data?.token);
-                localStorage.setItem("roleId", response?.data?.roleId);
-                localStorage.setItem("userId", response?.data?.userId);
-                localStorage.setItem("name", response?.data?.userName);
+                localStorage.setItem("roleId", response?.data?.data?.roleId);
+                localStorage.setItem("userId", response?.data?.data?.userId);
+                localStorage.setItem("name", response?.data?.data?.userName);
             } else if (roleId === 1) {
                 showSnackbar("error", "Authentication Failed, Insufficient Permissions");
             }
@@ -93,7 +94,7 @@ const Login = () => {
         } catch (error) {
             showSnackbar("error", "Invalid credentials");
             setIsLoading(false);
-                            navigate("/dashboard");
+            navigate("/dashboard");
 
         }
     };

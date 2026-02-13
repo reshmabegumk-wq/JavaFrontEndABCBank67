@@ -18,7 +18,7 @@ const Layout = ({ children }) => {
         handleResize();
         window.addEventListener("resize", handleResize);
         window.addEventListener("sidebarToggle", handleSidebarToggle);
-        
+
         return () => {
             window.removeEventListener("resize", handleResize);
             window.removeEventListener("sidebarToggle", handleSidebarToggle);
@@ -35,7 +35,7 @@ const Layout = ({ children }) => {
                 minHeight: "100vh",
                 width: "100%",
                 position: "relative",
-                backgroundColor: "#f8fafc",
+                backgroundColor: "var(--color-bg)",
                 overflowX: "hidden",
             }}
         >
@@ -48,10 +48,10 @@ const Layout = ({ children }) => {
                     flex: 1,
                     marginLeft: `${sidebarWidth}px`,
                     padding: isMobile ? "80px 24px 24px" : "32px",
-                    background: "#f8fafc",
+                    background: "var(--color-bg)",
                     minHeight: "100vh",
                     width: `calc(100% - ${sidebarWidth}px)`,
-                    transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color var(--transition-speed)",
                     boxSizing: "border-box",
                 }}
             >
@@ -64,13 +64,13 @@ const Layout = ({ children }) => {
                             left: 0,
                             right: 0,
                             height: "70px",
-                            background: "#ffffff",
-                            borderBottom: "1px solid #e2e8f0",
+                            background: "var(--color-surface)",
+                            borderBottom: "1px solid var(--color-border)",
                             display: "flex",
                             alignItems: "center",
                             padding: "0 24px",
                             zIndex: 99,
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                            boxShadow: "var(--shadow-sm)",
                         }}
                     >
                         <div
@@ -85,7 +85,7 @@ const Layout = ({ children }) => {
                                     width: "40px",
                                     height: "40px",
                                     borderRadius: "10px",
-                                    background: "linear-gradient(135deg, #4361ee15, #3a0ca315)",
+                                    background: "linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(58, 12, 163, 0.15))",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -107,7 +107,7 @@ const Layout = ({ children }) => {
                                 style={{
                                     fontSize: "18px",
                                     fontWeight: "600",
-                                    color: "#1e293b",
+                                    color: "var(--color-text)",
                                 }}
                             >
                                 Admin Dashboard
@@ -147,7 +147,7 @@ const Layout = ({ children }) => {
                 /* Smooth scrolling */
                 * {
                     scrollbar-width: thin;
-                    scrollbar-color: #cbd5e1 #f1f5f9;
+                    scrollbar-color: var(--color-border) var(--color-bg);
                 }
 
                 *::-webkit-scrollbar {
@@ -156,16 +156,16 @@ const Layout = ({ children }) => {
                 }
 
                 *::-webkit-scrollbar-track {
-                    background: #f1f5f9;
+                    background: var(--color-bg);
                 }
 
                 *::-webkit-scrollbar-thumb {
-                    background: #cbd5e1;
+                    background: var(--color-border);
                     border-radius: 20px;
                 }
 
                 *::-webkit-scrollbar-thumb:hover {
-                    background: #94a3b8;
+                    background: var(--color-muted);
                 }
             `}</style>
         </div>

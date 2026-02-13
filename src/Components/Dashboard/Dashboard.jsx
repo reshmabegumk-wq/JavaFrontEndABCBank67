@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     FaUser,
     FaCreditCard,
@@ -22,88 +22,158 @@ import {
     FaUniversity,
     FaRupeeSign,
 } from "react-icons/fa";
+import API from "../../api";
+import { useSnackbar } from "../../Context/SnackbarContext";
 
 const Dashboard = () => {
+    const { showSnackbar } = useSnackbar();
     const [showBalance, setShowBalance] = useState(true);
     const [selectedAccount, setSelectedAccount] = useState(0);
+    const [transactions, setTransactions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [userData, setUserData] = useState(null);
+    const [userLoading, setUserLoading] = useState(true);
 
-    // Sample user data
+    const [cards, setCards] = useState([]);
+    const [cardsLoading, setCardsLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const userId = localStorage.getItem("userId");
+                if (userId) {
+                    const response = await API.get(`users/${userId}`);
+                    console.log("User Data fetched:", response.data);
+                    setUserData(response.data);
+                    // Store account numbers in localStorage for Transactions component
+                    if (response.data?.data?.accounts) {
+                        response.data.data.accounts.forEach(acc => {
+                            const type = acc.accountTypeName ? acc.accountTypeName.toLowerCase() : "savings"; // Default to savings if null
+                            console.log(`Processing Account: ${acc.accountNumber}, Type: ${acc.accountTypeName || "null (defaulting to savings)"}`);
+
+                            if (type.includes("savings")) {
+                                localStorage.setItem("savingsAccount", acc.accountNumber);
+                                console.log("Savings Account set to:", acc.accountNumber);
+                            } else if (type.includes("current")) {
+                                localStorage.setItem("currentAccount", acc.accountNumber);
+                                console.log("Current Account set to:", acc.accountNumber);
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                showSnackbar("error", "Failed to load user profile");
+            } finally {
+                setUserLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
+    useEffect(() => {
+        const fetchCards = async () => {
+            if (userData?.data?.accounts && userData.data.accounts.length > 0) {
+                setCardsLoading(true);
+                try {
+                    // For now, let's just fetch cards for the first account as per the user's request example
+                    // In a real app, we might want to fetch for all accounts via Promise.all
+                    const accountId = userData.data.accounts[0].accountNumber;
+                    const response = await API.get(`account/userCardList/${accountId}`);
+                    console.log("Cards fetched:", response.data);
+
+                    if (response.data && response.data.status && Array.isArray(response.data.data)) {
+                        const mappedCards = response.data.data.map((card, index) => ({
+                            type: card.cardTypeName || "Debit Card",
+                            cardNumber: card.cardNumber ? String(card.cardNumber).replace(/(\d{4})(?=\d)/g, '$1 ') : "**** **** **** ****", // Basic formatting
+                            cardHolder: userData.data.firstName ? `${userData.data.firstName.toUpperCase()} ${userData.data.lastName.toUpperCase()}` : "USER",
+                            expiry: card.expiryDate ? new Date(card.expiryDate).toLocaleDateString('en-US', { month: '2-digit', year: '2-digit' }) : "MM/YY", // Simple format
+                            network: "Visa", // Hardcoded or derive if possible
+                            status: card.status || "Active",
+                            color: index % 2 === 0 ? "linear-gradient(135deg, #1a237e, #283593)" : "linear-gradient(135deg, #0f172a, #334155)", // Alternating colors
+                        }));
+                        setCards(mappedCards);
+                    }
+                } catch (error) {
+                    console.error("Error fetching cards:", error);
+                    showSnackbar("error", "Failed to load card details");
+                } finally {
+                    setCardsLoading(false);
+                }
+            }
+        };
+        fetchCards();
+    }, [userData]);
+
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            // Ensure userData is available and has the selected account
+            if (userData?.data?.accounts && userData.data.accounts[selectedAccount]) {
+                setLoading(true);
+                try {
+                    const accountId = userData.data.accounts[selectedAccount].accountNumber;
+                    console.log(`Fetching transactions for Account ID: ${accountId}`);
+                    const response = await API.get(`account/transactions/${accountId}`);
+                    console.log("Transactions fetched:", response.data);
+
+                    const txData = response.data && Array.isArray(response.data.data) ? response.data.data : [];
+                    setTransactions(txData);
+                } catch (error) {
+                    console.error("Error fetching transactions:", error);
+                    showSnackbar("error", "Failed to load recent transactions");
+                    setTransactions([]);
+                } finally {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchTransactions();
+    }, [selectedAccount, userData]);
+
+    // Sample user data (Fallback/Reference)
+    /*
     const userData = {
         name: "John Anderson",
         customerId: "CUST-2024-12345",
         memberSince: "2018",
-        accounts: [
-            {
-                id: 0,
-                type: "Savings Account",
-                accountNumber: "1234 5678 9012 3456",
-                ifsc: "ABC0001234",
-                branch: "Main Branch, NYC",
-                balance: 245000.50,
-                currency: "INR",
-                interestRate: "4.25%",
-                openedDate: "15 Jan 2018",
-                status: "Active",
-                cardLinked: true,
-            },
-            {
-                id: 1,
-                type: "Current Account",
-                accountNumber: "9876 5432 1098 7654",
-                ifsc: "ABC0005678",
-                branch: "Downtown Branch, NYC",
-                balance: 75000.75,
-                currency: "INR",
-                interestRate: "2.50%",
-                openedDate: "22 Mar 2020",
-                status: "Active",
-                cardLinked: true,
-            },
-        ],
-        cards: [
-            {
-                type: "Debit Card",
-                cardNumber: "•••• •••• •••• 4567",
-                cardHolder: "JOHN ANDERSON",
-                expiry: "05/28",
-                network: "Visa",
-                status: "Active",
-                dailyLimit: "₹50,000",
-                contactless: true,
-                color: "linear-gradient(135deg, #1a237e, #283593)",
-            },
-            {
-                type: "Credit Card",
-                cardNumber: "•••• •••• •••• 8901",
-                cardHolder: "JOHN ANDERSON",
-                expiry: "09/27",
-                network: "Mastercard",
-                status: "Active",
-                creditLimit: "₹3,00,000",
-                availableCredit: "₹1,85,000",
-                color: "linear-gradient(135deg, #b71c1c, #c62828)",
-            },
-            {
-                type: "Business Card",
-                cardNumber: "•••• •••• •••• 2345",
-                cardHolder: "JOHN ANDERSON",
-                expiry: "11/26",
-                network: "RuPay",
-                status: "Active",
-                dailyLimit: "₹1,00,000",
-                contactless: true,
-                color: "linear-gradient(135deg, #0f172a, #1e293b)",
-            }
-        ],
-        recentTransactions: [
-            { id: 1, description: "Amazon.in", amount: -3499.00, date: "Today", time: "10:23 AM", type: "debit", category: "Shopping", status: "completed" },
-            { id: 2, description: "Salary Credit", amount: 125000.00, date: "Yesterday", time: "09:00 AM", type: "credit", category: "Income", status: "completed" },
-            { id: 3, description: "Starbucks Coffee", amount: -450.50, date: "25 Mar 2026", time: "03:45 PM", type: "debit", category: "Food", status: "completed" },
-            { id: 4, description: "Electricity Bill", amount: -2850.00, date: "24 Mar 2026", time: "11:15 AM", type: "debit", category: "Utilities", status: "completed" },
-            { id: 5, description: "Netflix", amount: -649.00, date: "23 Mar 2026", time: "08:30 PM", type: "debit", category: "Entertainment", status: "pending" },
-        ],
+        accounts: [ ... ]
+    };
+    */
+
+    // Fallback data if API fails or is loading
+    const apiData = userData?.data || {}; // Access the nested 'data' object from the API response
+
+    const displayData = {
+        name: apiData.firstName ? `${apiData.firstName} ${apiData.lastName}` : "Guest User",
+        customerId: apiData.userId ? `ID: ${apiData.userId}` : "---",
+        memberSince: "2024", // Hardcoded as not in API
+        accounts: Array.isArray(apiData.accounts) ? apiData.accounts.map(acc => ({
+            id: acc.accountNumber,
+            type: acc.accountTypeName || "Savings Account", // Default if null
+            accountNumber: String(acc.accountNumber),
+            ifsc: acc.branchCode || "ABC0001234",
+            branch: acc.branchName || "Main Branch",
+            balance: acc.balance || 0,
+            currency: "INR",
+            interestRate: "4.0%", // Hardcoded
+            openedDate: "N/A", // Hardcoded
+            status: acc.status || "Active",
+            cardLinked: true
+        })) : [],
+        cards: cards,
+        balanceStats: { // Calculated from accounts or defaults
+            income: 0,
+            expense: 0,
+            savings: Array.isArray(apiData.accounts) ? apiData.accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0) : 0
+        },
         notifications: 3
     };
+
+    if (userLoading || !displayData) {
+        return <div style={{ textAlign: "center", padding: "50px", fontSize: "20px", color: "var(--color-text)" }}>Loading user data...</div>;
+    }
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -125,67 +195,29 @@ const Dashboard = () => {
             <div style={styles.header}>
                 <div style={styles.welcomeSection}>
                     <div style={styles.avatarContainer}>
-                        <span style={styles.avatarText}>{userData.name.charAt(0)}</span>
+                        <span style={styles.avatarText}>{displayData.name ? displayData.name.charAt(0) : 'U'}</span>
                     </div>
                     <div style={styles.welcomeText}>
-                        <h1 style={styles.greeting}>Welcome back, {userData.name.split(' ')[0]}! 👋</h1>
+                        <h1 style={styles.greeting}>Welcome back, {displayData.name ? displayData.name.split(' ')[0] : 'User'}! 👋</h1>
                         <p style={styles.subGreeting}>
-                            <span style={styles.memberSince}>Since {userData.memberSince}</span>
+                            <span style={styles.memberSince}>Since {displayData.memberSince}</span>
                         </p>
                     </div>
                 </div>
                 <div style={styles.headerActions}>
-
                     <button style={styles.notificationBtn}>
                         <FaBell size={18} />
-
-                        {userData.notifications > 0 && (
+                        {displayData.notifications > 0 && (
                             <span style={styles.notificationBadge}>
-                                {userData.notifications}
+                                {displayData.notifications}
                             </span>
                         )}
                     </button>
-
                     <button style={styles.notificationBtn}>
                         <FaCog size={18} />
                     </button>
-
                 </div>
             </div>
-
-            {/* Quick Actions */}
-            {/* <div style={styles.quickActions}>
-                <button style={styles.actionBtn}>
-                    <div style={styles.actionIcon}>
-                        <FaArrowUp size={16} />
-                    </div>
-                    <span>Send Money</span>
-                </button>
-                <button style={styles.actionBtn}>
-                    <div style={styles.actionIcon}>
-                        <FaArrowDown size={16} />
-                    </div>
-                    <span>Request</span>
-                </button>
-                <button style={styles.actionBtn}>
-                    <div style={styles.actionIcon}>
-                        <FaExchangeAlt size={16} />
-                    </div>
-                    <span>Transfer</span>
-                </button>
-                <button style={styles.actionBtn}>
-                    <div style={styles.actionIcon}>
-                        <FaFileInvoiceDollar size={16} />
-                    </div>
-                    <span>Pay Bills</span>
-                </button>
-                <button style={styles.actionBtn}>
-                    <div style={styles.actionIcon}>
-                        <FaPlus size={16} />
-                    </div>
-                    <span>Add Money</span>
-                </button>
-            </div> */}
 
             {/* Main Grid */}
             <div style={styles.mainGrid}>
@@ -204,7 +236,7 @@ const Dashboard = () => {
                         </div>
                         <h2 style={styles.totalBalanceAmount}>
                             {showBalance ? formatCurrency(
-                                userData.accounts.reduce((sum, acc) => sum + acc.balance, 0)
+                                displayData.accounts ? displayData.accounts.reduce((sum, acc) => sum + acc.balance, 0) : 0
                             ) : '••••••••'}
                         </h2>
                         <div style={styles.totalBalanceFooter}>
@@ -216,7 +248,7 @@ const Dashboard = () => {
 
                     {/* Account Selector */}
                     <div style={styles.accountSelector}>
-                        {userData.accounts.map((account, index) => (
+                        {displayData.accounts && displayData.accounts.map((account, index) => (
                             <div
                                 key={account.id}
                                 style={{
@@ -228,7 +260,7 @@ const Dashboard = () => {
                                 <div style={styles.accountTabInfo}>
                                     <span style={styles.accountTabType}>{account.type}</span>
                                     <span style={styles.accountTabNumber}>
-                                        {account.accountNumber.slice(-4)}
+                                        {account.accountNumber ? account.accountNumber.slice(-4) : '****'}
                                     </span>
                                 </div>
                                 <span style={styles.accountTabBalance}>
@@ -239,71 +271,74 @@ const Dashboard = () => {
                     </div>
 
                     {/* Selected Account Details */}
-                    <div style={styles.accountDetailsCard}>
-                        <div style={styles.accountDetailsHeader}>
-                            <h3 style={styles.accountDetailsTitle}>
-                                {userData.accounts[selectedAccount].type}
-                            </h3>
-                            <span style={styles.accountStatus}>
-                                <FaCheckCircle size={14} color="#10b981" />
-                                {userData.accounts[selectedAccount].status}
-                            </span>
-                        </div>
+                    {displayData.accounts && displayData.accounts[selectedAccount] && (
+                        <div style={styles.accountDetailsCard}>
+                            <div style={styles.accountDetailsHeader}>
+                                <h3 style={styles.accountDetailsTitle}>
+                                    {displayData.accounts[selectedAccount].type}
+                                </h3>
+                                <span style={styles.accountStatus}>
+                                    <FaCheckCircle size={14} color="#10b981" />
+                                    {displayData.accounts[selectedAccount].status}
+                                </span>
+                            </div>
 
-                        <div style={styles.accountNumberRow}>
-                            <span style={styles.accountNumber}>
-                                {userData.accounts[selectedAccount].accountNumber}
-                            </span>
-                            <button
-                                style={styles.copyBtn}
-                                onClick={() => copyToClipboard(userData.accounts[selectedAccount].accountNumber)}
-                            >
-                                <FaCopy size={14} />
-                            </button>
-                        </div>
+                            <div style={styles.accountNumberRow}>
+                                <span style={styles.accountNumber}>
+                                    {displayData.accounts[selectedAccount].accountNumber}
+                                </span>
+                                <button
+                                    style={styles.copyBtn}
+                                    onClick={() => copyToClipboard(displayData.accounts[selectedAccount].accountNumber)}
+                                >
+                                    <FaCopy size={14} />
+                                </button>
+                            </div>
 
-                        <div style={styles.accountMetaGrid}>
-                            <div style={styles.accountMetaItem}>
-                                <span style={styles.metaLabel}>IFSC Code</span>
-                                <div style={styles.metaValueRow}>
-                                    <span style={styles.metaValue}>{userData.accounts[selectedAccount].ifsc}</span>
-                                    <button
-                                        style={styles.copyBtnSmall}
-                                        onClick={() => copyToClipboard(userData.accounts[selectedAccount].ifsc)}
-                                    >
-                                        <FaCopy size={12} />
-                                    </button>
+                            <div style={styles.accountMetaGrid}>
+                                <div style={styles.accountMetaItem}>
+                                    <span style={styles.metaLabel}>IFSC Code</span>
+                                    <div style={styles.metaValueRow}>
+                                        <span style={styles.metaValue}>{displayData.accounts[selectedAccount].ifsc}</span>
+                                        <button
+                                            style={styles.copyBtnSmall}
+                                            onClick={() => copyToClipboard(displayData.accounts[selectedAccount].ifsc)}
+                                        >
+                                            <FaCopy size={12} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style={styles.accountMetaItem}>
+                                    <span style={styles.metaLabel}>Branch</span>
+                                    <span style={styles.metaValue}>{displayData.accounts[selectedAccount].branch}</span>
+                                </div>
+                                <div style={styles.accountMetaItem}>
+                                    <span style={styles.metaLabel}>Interest Rate</span>
+                                    <span style={styles.metaValue}>{displayData.accounts[selectedAccount].interestRate}</span>
+                                </div>
+                                <div style={styles.accountMetaItem}>
+                                    <span style={styles.metaLabel}>Opened On</span>
+                                    <span style={styles.metaValue}>{displayData.accounts[selectedAccount].openedDate || displayData.accounts[selectedAccount].maturityDate}</span>
                                 </div>
                             </div>
-                            <div style={styles.accountMetaItem}>
-                                <span style={styles.metaLabel}>Branch</span>
-                                <span style={styles.metaValue}>{userData.accounts[selectedAccount].branch}</span>
-                            </div>
-                            <div style={styles.accountMetaItem}>
-                                <span style={styles.metaLabel}>Interest Rate</span>
-                                <span style={styles.metaValue}>{userData.accounts[selectedAccount].interestRate}</span>
-                            </div>
-                            <div style={styles.accountMetaItem}>
-                                <span style={styles.metaLabel}>Opened On</span>
-                                <span style={styles.metaValue}>{userData.accounts[selectedAccount].openedDate || userData.accounts[selectedAccount].maturityDate}</span>
+
+                            <div style={styles.accountActions}>
+                                <button style={styles.accountActionBtn}>View Statement</button>
                             </div>
                         </div>
+                    )}
+                </div>
 
-                        <div style={styles.accountActions}>
-                            <button style={styles.accountActionBtn}>View Statement</button>
-                            <button style={styles.accountActionBtnPrimary}>Transfer Money</button>
-                        </div>
-                    </div>
-
+                {/* Right Column - Transactions & Insights */}
+                <div style={styles.rightColumn}>
                     {/* Cards Section */}
                     <div style={styles.cardsSection}>
                         <div style={styles.sectionHeader}>
                             <h3 style={styles.sectionTitle}>Your Cards</h3>
-                            <button style={styles.viewAllBtn}>View All</button>
                         </div>
 
                         <div style={styles.cardsGrid}>
-                            {userData.cards.map((card, index) => (
+                            {displayData.cards && displayData.cards.map((card, index) => (
                                 <div
                                     key={index}
                                     style={{
@@ -332,127 +367,71 @@ const Dashboard = () => {
                             ))}
                         </div>
                     </div>
-                </div>
 
-                {/* Right Column - Transactions & Insights */}
-                <div style={styles.rightColumn}>
                     {/* Recent Transactions */}
-                    <div style={styles.transactionsCard}>
-                        <div style={styles.sectionHeader}>
-                            <h3 style={styles.sectionTitle}>Recent Transactions</h3>
-                            <button style={styles.viewAllBtn}>View All</button>
-                        </div>
+                    <div style={{ ...styles.sectionHeader, marginTop: '24px' }}>
+                        <h3 style={styles.sectionTitle}>Recent Transactions</h3>
+                        <button style={styles.viewAllBtn}>View All</button>
+                    </div>
 
-                        <div style={styles.transactionsList}>
-                            {userData.recentTransactions.map((transaction) => (
-                                <div key={transaction.id} style={styles.transactionItem}>
-                                    <div style={styles.transactionIconContainer}>
-                                        <div style={{
-                                            ...styles.transactionIcon,
-                                            backgroundColor: transaction.type === 'credit' ? '#e8f5e9' : '#fee2e2',
-                                            color: transaction.type === 'credit' ? '#10b981' : '#ef4444'
-                                        }}>
-                                            {transaction.type === 'credit' ? <FaArrowUp size={14} /> : <FaArrowDown size={14} />}
-                                        </div>
-                                    </div>
-                                    <div style={styles.transactionDetails}>
-                                        <div style={styles.transactionMain}>
-                                            <span style={styles.transactionDesc}>{transaction.description}</span>
-                                            <span style={{
-                                                ...styles.transactionAmount,
-                                                color: transaction.type === 'credit' ? '#10b981' : '#ef4444'
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {loading ? (
+                            <p style={{ textAlign: "center", padding: "20px", color: "var(--color-muted)" }}>Loading transactions...</p>
+                        ) : transactions.length > 0 ? (
+                            transactions.map((transaction) => {
+                                const isCredit = transaction.transactionType === "DEPOSIT"; // Based on User JSON
+                                return (
+                                    <div key={transaction.transactionId || Math.random()} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '16px',
+                                        background: 'var(--color-surface)',
+                                        borderRadius: '16px',
+                                        border: '1px solid var(--color-border)',
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            <div style={{
+                                                ...styles.transactionIcon,
+                                                width: '40px',
+                                                height: '40px',
+                                                borderRadius: '12px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                backgroundColor: isCredit ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                                color: isCredit ? '#10b981' : '#ef4444'
                                             }}>
-                                                {transaction.type === 'credit' ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
-                                            </span>
+                                                {isCredit ? <FaArrowDown /> : <FaArrowUp />}
+                                            </div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span style={{ fontSize: '15px', fontWeight: '600', color: 'var(--color-text)' }}>
+                                                    {transaction.transactionType || "Transaction"}
+                                                </span>
+                                                <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                                                    {transaction.dateOfTransaction || "N/A"}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div style={styles.transactionMeta}>
-                                            <span style={styles.transactionDate}>
-                                                <FaClock size={12} color="#94a3b8" />
-                                                {transaction.date} at {transaction.time}
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                            <span style={{
+                                                fontSize: '15px',
+                                                fontWeight: '600',
+                                                color: isCredit ? '#10b981' : 'var(--color-text)'
+                                            }}>
+                                                {isCredit ? '+' : '-'}
+                                                {transaction.transactionedAmount ? formatCurrency(transaction.transactionedAmount) : "₹0.00"}
                                             </span>
-                                            <span style={styles.transactionCategory}>{transaction.category}</span>
-                                            {transaction.status === 'pending' && (
-                                                <span style={styles.pendingBadge}>Pending</span>
-                                            )}
+                                            <span style={{ fontSize: '12px', color: 'var(--color-muted)' }}>
+                                                {transaction.closingBalance ? `Bal: ${formatCurrency(transaction.closingBalance)}` : ""}
+                                            </span>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Spending Insights */}
-                    <div style={styles.insightsCard}>
-                        <div style={styles.sectionHeader}>
-                            <h3 style={styles.sectionTitle}>Spending Insights</h3>
-                            <FaChartPie size={18} color="#64748b" />
-                        </div>
-
-                        <div style={styles.insightsContent}>
-                            <div style={styles.insightItem}>
-                                <div style={styles.insightLabel}>
-                                    <span>Monthly Spending</span>
-                                    <span style={styles.insightValue}>₹42,850</span>
-                                </div>
-                                <div style={styles.progressBar}>
-                                    <div style={{
-                                        ...styles.progressFill,
-                                        width: '65%',
-                                        background: 'linear-gradient(90deg, #4361ee, #3a0ca3)'
-                                    }} />
-                                </div>
-                                <span style={styles.insightSubtext}>65% of ₹65,000 budget</span>
-                            </div>
-
-                            <div style={styles.spendingCategories}>
-                                <div style={styles.categoryItem}>
-                                    <div style={{ ...styles.categoryDot, backgroundColor: '#4361ee' }} />
-                                    <span style={styles.categoryName}>Shopping</span>
-                                    <span style={styles.categoryAmount}>₹15,200</span>
-                                </div>
-                                <div style={styles.categoryItem}>
-                                    <div style={{ ...styles.categoryDot, backgroundColor: '#f59e0b' }} />
-                                    <span style={styles.categoryName}>Food & Dining</span>
-                                    <span style={styles.categoryAmount}>₹12,450</span>
-                                </div>
-                                <div style={styles.categoryItem}>
-                                    <div style={{ ...styles.categoryDot, backgroundColor: '#10b981' }} />
-                                    <span style={styles.categoryName}>Utilities</span>
-                                    <span style={styles.categoryAmount}>₹8,300</span>
-                                </div>
-                                <div style={styles.categoryItem}>
-                                    <div style={{ ...styles.categoryDot, backgroundColor: '#8b5cf6' }} />
-                                    <span style={styles.categoryName}>Entertainment</span>
-                                    <span style={styles.categoryAmount}>₹6,900</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Security Status */}
-                    <div style={styles.securityCard}>
-                        <div style={styles.securityHeader}>
-                            <FaShieldAlt size={18} color="#10b981" />
-                            <span style={styles.securityTitle}>Security Status</span>
-                        </div>
-                        <div style={styles.securityGrid}>
-                            <div style={styles.securityItem}>
-                                <FaCheckCircle size={14} color="#10b981" />
-                                <span>2FA Enabled</span>
-                            </div>
-                            <div style={styles.securityItem}>
-                                <FaCheckCircle size={14} color="#10b981" />
-                                <span>Biometric Login</span>
-                            </div>
-                            <div style={styles.securityItem}>
-                                <FaCheckCircle size={14} color="#10b981" />
-                                <span>Transaction Alerts</span>
-                            </div>
-                            <div style={styles.securityItem}>
-                                <FaCheckCircle size={14} color="#10b981" />
-                                <span>Card Lock/Unlock</span>
-                            </div>
-                        </div>
+                                );
+                            })
+                        ) : (
+                            <p style={{ textAlign: "center", padding: "20px", color: "var(--color-muted)" }}>No transactions found.</p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -499,7 +478,7 @@ const styles = {
     greeting: {
         fontSize: "28px",
         fontWeight: "700",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: 0,
     },
     subGreeting: {
@@ -507,22 +486,22 @@ const styles = {
         alignItems: "center",
         gap: "16px",
         margin: 0,
-        color: "#64748b",
+        color: "var(--color-muted)",
         fontSize: "14px",
     },
     customerId: {
-        color: "#475569",
+        color: "var(--color-text-secondary)",
         fontWeight: "500",
     },
     badge: {
-        background: "linear-gradient(135deg, #4361ee15, #3a0ca315)",
+        background: "linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(58, 12, 163, 0.15))",
         color: "#4361ee",
         padding: "4px 12px",
         borderRadius: "20px",
         fontWeight: "600",
     },
     memberSince: {
-        color: "#94a3b8",
+        color: "var(--color-muted)",
     },
     headerActions: {
         display: "flex",
@@ -530,15 +509,16 @@ const styles = {
     },
     notificationBtn: {
         position: "relative",
-        padding: "12px",  
+        padding: "12px",
         borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        background: "#ffffff",
-        color: "#475569",
+        border: "1px solid var(--color-border)",
+        background: "var(--color-surface)",
+        color: "var(--color-text-secondary)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
+        transition: "all 0.2s",
     },
     notificationBadge: {
         position: "absolute",
@@ -559,9 +539,9 @@ const styles = {
         width: "44px",
         height: "44px",
         borderRadius: "12px",
-        border: "1px solid #e2e8f0",
-        background: "#ffffff",
-        color: "#475569",
+        border: "1px solid var(--color-border)",
+        background: "var(--color-surface)",
+        color: "var(--color-text-secondary)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -579,10 +559,10 @@ const styles = {
         alignItems: "center",
         gap: "10px",
         padding: "12px 20px",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
         borderRadius: "14px",
-        color: "#1e293b",
+        color: "var(--color-text)",
         fontSize: "14px",
         fontWeight: "600",
         cursor: "pointer",
@@ -592,7 +572,7 @@ const styles = {
         width: "32px",
         height: "32px",
         borderRadius: "10px",
-        background: "#f8fafc",
+        background: "var(--color-bg)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -665,8 +645,8 @@ const styles = {
     accountTab: {
         flex: 1,
         minWidth: "180px",
-        background: "#ffffff",
-        border: "1px solid #e2e8f0",
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
         borderRadius: "16px",
         padding: "16px",
         cursor: "pointer",
@@ -674,7 +654,7 @@ const styles = {
     },
     accountTabActive: {
         borderColor: "#4361ee",
-        background: "#f0f9ff",
+        background: "var(--sidebar-active-bg)",
         boxShadow: "0 4px 12px rgba(67,97,238,0.1)",
     },
     accountTabInfo: {
@@ -686,23 +666,23 @@ const styles = {
     accountTabType: {
         fontSize: "15px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     accountTabNumber: {
         fontSize: "13px",
-        color: "#64748b",
+        color: "var(--color-text-secondary)",
     },
     accountTabBalance: {
         fontSize: "20px",
         fontWeight: "700",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     accountDetailsCard: {
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
-        border: "1px solid #e2e8f0",
+        boxShadow: "var(--shadow-sm)",
+        border: "1px solid var(--color-border)",
     },
     accountDetailsHeader: {
         display: "flex",
@@ -713,7 +693,7 @@ const styles = {
     accountDetailsTitle: {
         fontSize: "18px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: 0,
     },
     accountStatus: {
@@ -724,7 +704,7 @@ const styles = {
         color: "#10b981",
         fontWeight: "600",
         padding: "6px 12px",
-        background: "#e8f5e9",
+        background: "rgba(16, 185, 129, 0.1)",
         borderRadius: "20px",
     },
     accountNumberRow: {
@@ -736,13 +716,13 @@ const styles = {
     accountNumber: {
         fontSize: "20px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
         letterSpacing: "2px",
     },
     copyBtn: {
         background: "none",
         border: "none",
-        color: "#64748b",
+        color: "var(--color-muted)",
         cursor: "pointer",
         padding: "8px",
         borderRadius: "8px",
@@ -756,8 +736,8 @@ const styles = {
         gap: "20px",
         marginBottom: "24px",
         padding: "20px 0",
-        borderTop: "1px solid #e2e8f0",
-        borderBottom: "1px solid #e2e8f0",
+        borderTop: "1px solid var(--color-border)",
+        borderBottom: "1px solid var(--color-border)",
     },
     accountMetaItem: {
         display: "flex",
@@ -766,14 +746,14 @@ const styles = {
     },
     metaLabel: {
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-muted)",
         textTransform: "uppercase",
         letterSpacing: "0.5px",
     },
     metaValue: {
         fontSize: "15px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     metaValueRow: {
         display: "flex",
@@ -783,7 +763,7 @@ const styles = {
     copyBtnSmall: {
         background: "none",
         border: "none",
-        color: "#94a3b8",
+        color: "var(--color-muted)",
         cursor: "pointer",
         padding: "4px",
         display: "flex",
@@ -797,7 +777,7 @@ const styles = {
     accountActionBtn: {
         flex: 1,
         padding: "14px",
-        background: "#f8fafc",
+        background: "var(--color-bg)",
         border: "1px solid #e2e8f0",
         borderRadius: "12px",
         color: "#475569",
@@ -817,10 +797,10 @@ const styles = {
         cursor: "pointer",
     },
     cardsSection: {
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
     },
     sectionHeader: {
         display: "flex",
@@ -831,7 +811,7 @@ const styles = {
     sectionTitle: {
         fontSize: "18px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
         margin: 0,
     },
     viewAllBtn: {
@@ -916,10 +896,10 @@ const styles = {
         borderRadius: "20px",
     },
     transactionsCard: {
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
     },
     transactionsList: {
         display: "flex",
@@ -931,7 +911,7 @@ const styles = {
         alignItems: "center",
         gap: "14px",
         padding: "8px 0",
-        borderBottom: "1px solid #f1f5f9",
+        borderBottom: "1px solid var(--color-border)",
     },
     transactionIconContainer: {
         flexShrink: 0,
@@ -956,7 +936,7 @@ const styles = {
     transactionDesc: {
         fontSize: "15px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     transactionAmount: {
         fontSize: "15px",
@@ -967,7 +947,7 @@ const styles = {
         alignItems: "center",
         gap: "12px",
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-muted)",
     },
     transactionDate: {
         display: "flex",
@@ -976,7 +956,7 @@ const styles = {
     },
     transactionCategory: {
         padding: "2px 8px",
-        background: "#f1f5f9",
+        background: "var(--sidebar-hover)",
         borderRadius: "12px",
     },
     pendingBadge: {
@@ -988,10 +968,10 @@ const styles = {
         fontWeight: "600",
     },
     insightsCard: {
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
     },
     insightsContent: {
         display: "flex",
@@ -1008,17 +988,17 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         fontSize: "14px",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
     },
     insightValue: {
         fontSize: "16px",
         fontWeight: "700",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     progressBar: {
         width: "100%",
         height: "8px",
-        background: "#e2e8f0",
+        background: "var(--color-border)",
         borderRadius: "4px",
         overflow: "hidden",
     },
@@ -1028,7 +1008,7 @@ const styles = {
     },
     insightSubtext: {
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-muted)",
     },
     spendingCategories: {
         display: "flex",
@@ -1048,17 +1028,17 @@ const styles = {
     },
     categoryName: {
         flex: 1,
-        color: "#475569",
+        color: "var(--color-text-secondary)",
     },
     categoryAmount: {
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     securityCard: {
-        background: "#ffffff",
+        background: "var(--color-surface)",
         borderRadius: "20px",
         padding: "24px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--color-border)",
     },
     securityHeader: {
         display: "flex",
@@ -1069,7 +1049,7 @@ const styles = {
     securityTitle: {
         fontSize: "16px",
         fontWeight: "600",
-        color: "#0f172a",
+        color: "var(--color-text)",
     },
     securityGrid: {
         display: "grid",
@@ -1081,7 +1061,7 @@ const styles = {
         alignItems: "center",
         gap: "8px",
         fontSize: "13px",
-        color: "#475569",
+        color: "var(--color-text-secondary)",
     },
 };
 

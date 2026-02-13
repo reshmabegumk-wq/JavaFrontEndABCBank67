@@ -3,7 +3,7 @@ import axios from "axios";
 // ================================
 // 🔥 Base URL (Your Backend)
 // ================================
-const BASE_URL = "http://localhost:8088/abcbank/";
+const BASE_URL = "http://localhost:8077/abcbank/api/";
 
 // ================================
 // 🚀 Axios Instance

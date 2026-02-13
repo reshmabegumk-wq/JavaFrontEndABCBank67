@@ -20,15 +20,19 @@ import {
     FaExchangeAlt,
     FaFileInvoiceDollar,
     FaHistory,
-    FaUserCircle
+    FaUserCircle,
+    FaSun,
+    FaMoon
 } from "react-icons/fa";
+import { useTheme } from "../../Context/ThemeContext";
 
 const Sidebar = () => {
     const [openServices, setOpenServices] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [activeItem, setActiveItem] = useState("dashboard");
-    
+    const { theme, toggleTheme } = useTheme();
+
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -104,17 +108,9 @@ const Sidebar = () => {
         },
         {
             id: "transactions",
-            icon: FaHistory,
+            icon: FaExchangeAlt,
             label: "Transactions",
             path: "/transactions",
-            badge: "12"
-        },
-        {
-            id: "analytics",
-            icon: FaChartLine,
-            label: "Analytics",
-            path: "/analytics",
-            badge: null
         },
         {
             id: "profile",
@@ -124,10 +120,10 @@ const Sidebar = () => {
             badge: null
         },
         {
-            id: "settings",
+            id: "My Requests",
             icon: FaCog,
-            label: "Settings",
-            path: "/settings",
+            label: "My Requests",
+            path: "/my-requests",
             badge: null
         }
     ];
@@ -136,14 +132,14 @@ const Sidebar = () => {
         <>
             {/* Mobile Overlay */}
             {isMobileOpen && (
-                <div 
+                <div
                     style={styles.overlay}
                     onClick={() => setIsMobileOpen(false)}
                 />
             )}
 
             {/* Mobile Toggle Button */}
-            <button 
+            <button
                 style={styles.mobileToggle}
                 onClick={toggleSidebar}
             >
@@ -151,7 +147,7 @@ const Sidebar = () => {
             </button>
 
             {/* Sidebar */}
-            <aside 
+            <aside
                 style={{
                     ...styles.sidebar,
                     width: isCollapsed ? "80px" : "280px",
@@ -177,8 +173,8 @@ const Sidebar = () => {
                             </div>
                         </div>
                     )}
-                    
-                    <button 
+
+                    <button
                         style={{
                             // ...styles.collapseBtn,
                             position: isCollapsed ? "relative" : "static",
@@ -280,10 +276,34 @@ const Sidebar = () => {
 
                 {/* Bottom Section */}
                 <div style={styles.bottomSection}>
+                    {/* Theme Toggle */}
+                    <div
+                        style={{
+                            ...styles.menuLink,
+                            justifyContent: isCollapsed ? "center" : "flex-start",
+                            padding: isCollapsed ? "14px 0" : "12px 16px",
+                            margin: isCollapsed ? "0 auto 12px" : "0 0 12px",
+                            width: isCollapsed ? "48px" : "100%",
+                        }}
+                        onClick={toggleTheme}
+                    >
+                        <div style={styles.menuIcon}>
+                            {theme === 'light' ?
+                                <FaMoon size={20} color="var(--color-primary)" /> :
+                                <FaSun size={20} color="#fbbf24" />
+                            }
+                        </div>
+                        {!isCollapsed && (
+                            <span style={styles.menuLabel}>
+                                {theme === 'light' ? 'Dark Mode' : 'Light Mode'}
+                            </span>
+                        )}
+                    </div>
+
                     {/* Bank Info - Collapsible */}
                     {!isCollapsed && (
                         <div style={styles.bankInfo}>
-                            <FaBuilding size={14} color="#94a3b8" />
+                            <FaBuilding size={14} color="var(--color-muted)" />
                             <span style={styles.bankInfoText}>Main Branch • NYC</span>
                         </div>
                     )}
@@ -340,14 +360,14 @@ const styles = {
         width: "44px",
         height: "44px",
         borderRadius: "12px",
-        backgroundColor: "#ffffff",
-        border: "1px solid #e2e8f0",
-        color: "#1e293b",
+        backgroundColor: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        color: "var(--color-text)",
         display: "none",
         alignItems: "center",
         justifyContent: "center",
         cursor: "pointer",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        boxShadow: "var(--shadow-sm)",
         transition: "all 0.2s",
         fontSize: "18px",
         "@media (max-width: 1024px)": {
@@ -359,15 +379,15 @@ const styles = {
         top: 0,
         left: 0,
         height: "100vh",
-        background: "linear-gradient(180deg, #ffffff 0%, #fafbfc 100%)",
-        color: "#1e293b",
+        background: "var(--sidebar-bg)",
+        color: "var(--sidebar-text)",
         padding: "0",
         boxShadow: "4px 0 20px rgba(0,0,0,0.03)",
         display: "flex",
         flexDirection: "column",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color var(--transition-speed)",
         zIndex: 1000,
-        borderRight: "1px solid rgba(0,0,0,0.05)",
+        borderRight: "1px solid var(--sidebar-border)",
         overflowY: "auto",
         overflowX: "hidden",
     },
@@ -389,20 +409,10 @@ const styles = {
         width: "44px",
         height: "44px",
         borderRadius: "12px",
-        background: "linear-gradient(135deg, #4361ee15, #3a0ca315)",
+        background: "linear-gradient(135deg, rgba(67, 97, 238, 0.15), rgba(58, 12, 163, 0.15))",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-    },
-    logoIconCollapsed: {
-        width: "44px",
-        height: "44px",
-        borderRadius: "12px",
-        background: "linear-gradient(135deg, #4361ee15, #3a0ca315)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        margin: "0 auto",
     },
     logoText: {
         display: "flex",
@@ -418,124 +428,9 @@ const styles = {
     },
     logoSub: {
         fontSize: "12px",
-        color: "#64748b",
+        color: "var(--color-text-secondary)",
         fontWeight: "500",
         letterSpacing: "1px",
-    },
-    collapseBtn: {
-        width: "32px",
-        height: "32px",
-        borderRadius: "8px",
-        border: "1px solid #e2e8f0",
-        backgroundColor: "#ffffff",
-        color: "#64748b",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        transition: "all 0.2s",
-        fontSize: "12px",
-        flexShrink: 0,
-        ":hover": {
-            backgroundColor: "#f8fafc",
-            borderColor: "#4361ee",
-            color: "#4361ee",
-        }
-    },
-    userSummary: {
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        padding: "16px 20px",
-        margin: "0 16px 20px",
-        backgroundColor: "#ffffff",
-        borderRadius: "16px",
-        border: "1px solid #e2e8f0",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
-        position: "relative",
-    },
-    userAvatar: {
-        width: "48px",
-        height: "48px",
-        borderRadius: "14px",
-        background: "linear-gradient(135deg, #e3f2fd, #bbdefb)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    userInfo: {
-        display: "flex",
-        flexDirection: "column",
-        flex: 1,
-    },
-    userName: {
-        fontSize: "15px",
-        fontWeight: "600",
-        color: "#0f172a",
-    },
-    userRole: {
-        fontSize: "12px",
-        color: "#64748b",
-        fontWeight: "500",
-    },
-    notificationBadge: {
-        position: "relative",
-        width: "32px",
-        height: "32px",
-        borderRadius: "10px",
-        backgroundColor: "#f8fafc",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#475569",
-        cursor: "pointer",
-    },
-    notificationCount: {
-        position: "absolute",
-        top: "-4px",
-        right: "-4px",
-        backgroundColor: "#ef4444",
-        color: "#ffffff",
-        fontSize: "10px",
-        fontWeight: "600",
-        width: "16px",
-        height: "16px",
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    searchContainer: {
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        padding: "0 20px",
-        margin: "0 16px 24px",
-        height: "48px",
-        backgroundColor: "#ffffff",
-        borderRadius: "14px",
-        border: "1px solid #e2e8f0",
-        transition: "all 0.2s",
-        ":focus-within": {
-            borderColor: "#4361ee",
-            boxShadow: "0 0 0 4px #4361ee15",
-        }
-    },
-    searchIcon: {
-        color: "#94a3b8",
-        fontSize: "16px",
-    },
-    searchInput: {
-        flex: 1,
-        border: "none",
-        outline: "none",
-        backgroundColor: "transparent",
-        fontSize: "14px",
-        color: "#1e293b",
-        padding: "0",
-        "::placeholder": {
-            color: "#94a3b8",
-        }
     },
     nav: {
         flex: 1,
@@ -557,18 +452,21 @@ const styles = {
         borderRadius: "12px",
         cursor: "pointer",
         transition: "all 0.2s",
-        color: "#475569",
+        color: "var(--sidebar-text)",
+        opacity: 0.8,
         position: "relative",
         ":hover": {
-            backgroundColor: "#f1f5f9",
-            color: "#0f172a",
+            backgroundColor: "var(--sidebar-hover)",
+            color: "var(--sidebar-text)",
+            opacity: 1,
         }
     },
     activeLink: {
-        backgroundColor: "#4361ee0d",
-        color: "#4361ee",
+        backgroundColor: "var(--sidebar-active-bg)",
+        color: "var(--sidebar-active-text)",
         fontWeight: "600",
-        borderLeft: "3px solid #4361ee",
+        borderLeft: "3px solid var(--sidebar-active-border)",
+        opacity: 1,
     },
     menuIcon: {
         display: "flex",
@@ -592,13 +490,13 @@ const styles = {
         textAlign: "center",
     },
     chevron: {
-        color: "#94a3b8",
+        color: "var(--color-text-secondary)",
     },
     subMenu: {
         listStyle: "none",
         padding: "8px 0 8px 44px",
         margin: "4px 0 8px",
-        borderLeft: "2px dashed #e2e8f0",
+        borderLeft: "2px dashed var(--sidebar-border)",
     },
     subMenuItem: {
         display: "flex",
@@ -608,12 +506,14 @@ const styles = {
         borderRadius: "10px",
         cursor: "pointer",
         fontSize: "14px",
-        color: "#475569",
+        color: "var(--sidebar-text)",
+        opacity: 0.8,
         transition: "all 0.2s",
         marginBottom: "2px",
         ":hover": {
-            backgroundColor: "#f8fafc",
-            color: "#0f172a",
+            backgroundColor: "var(--sidebar-hover)",
+            color: "var(--sidebar-text)",
+            opacity: 1,
             transform: "translateX(4px)",
         }
     },
@@ -640,21 +540,23 @@ const styles = {
         gap: "8px",
         padding: "16px 16px",
         marginBottom: "8px",
-        backgroundColor: "#f8fafc",
+        backgroundColor: "var(--sidebar-hover)",
         borderRadius: "12px",
-        border: "1px solid #e2e8f0",
+        border: "1px solid var(--sidebar-border)",
     },
     bankInfoText: {
         fontSize: "13px",
-        color: "#475569",
+        color: "var(--sidebar-text)",
+        opacity: 0.8,
         fontWeight: "500",
     },
     logoutLink: {
-        backgroundColor: "#fef2f2",
+        backgroundColor: "rgba(239, 68, 68, 0.1)",
         color: "#ef4444",
         marginBottom: "12px",
+        opacity: 1,
         ":hover": {
-            backgroundColor: "#fee2e2",
+            backgroundColor: "rgba(239, 68, 68, 0.2)",
         }
     },
     logoutLabel: {
@@ -669,7 +571,7 @@ const styles = {
     },
     versionText: {
         fontSize: "12px",
-        color: "#94a3b8",
+        color: "var(--color-text-secondary)",
         fontWeight: "500",
     },
     envBadge: {

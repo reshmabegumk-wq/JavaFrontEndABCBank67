@@ -3,12 +3,8 @@ import Login from "./Components/Login/Login";
 import Layout from "./Components/Layout";
 import Dashboard from "./Components/Dashboard/Dashboard";
 import Profile from "./Components/Profile/Profile";
-import DebitCard from "./Components/Services/DebitCard";
-import DebitCardRequest from "./Components/Services/DebitCardRequest";
-import Checkbook from "./Components/Services/Checkbook";
-import CreditCard from "./Components/Services/CreditCard";
-import CreditCardRequest from "./Components/Services/CreditCardRequest";
 import Services from "./Components/Services/Services";
+import Transactions from "./Components/Transaction/Transactions";
 
 const App = () => {
   return (
@@ -36,46 +32,10 @@ const App = () => {
         />
 
         <Route
-          path="/services/debit-card"
+          path="/transactions"
           element={
             <Layout>
-              <DebitCard />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/services/debit-card-request"
-          element={
-            <Layout>
-              <DebitCardRequest />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/services/credit-card"
-          element={
-            <Layout>
-              <CreditCard />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/services/credit-card-request"
-          element={
-            <Layout>
-              <CreditCardRequest />
-            </Layout>
-          }
-        />
-
-        <Route
-          path="/services/checkbook"
-          element={
-            <Layout>
-              <Checkbook />
+              <Transactions />
             </Layout>
           }
         />

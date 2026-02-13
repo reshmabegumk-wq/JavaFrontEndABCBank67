@@ -4,10 +4,14 @@ import './index.css'
 import App from './App.jsx'
 import { SnackbarProvider } from './Context/SnackbarContext.jsx'
 
+import { ThemeProvider } from './Context/ThemeContext.jsx'
+
 createRoot(document.getElementById('root')).render(
   // <StrictMode>
-  <SnackbarProvider>
-    <App />
+  <ThemeProvider>
+    <SnackbarProvider>
+      <App />
     </SnackbarProvider>
+  </ThemeProvider>
   // </StrictMode>,
 )
