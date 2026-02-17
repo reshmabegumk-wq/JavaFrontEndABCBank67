@@ -5,7 +5,7 @@ import Dashboard from "./Components/Dashboard/Dashboard";
 import Profile from "./Components/Profile/Profile";
 import Services from "./Components/Services/Services";
 import Transactions from "./Components/Transaction/Transactions";
-
+import MyRequests from "./Components/MyRequests/MyRequests";
 const App = () => {
   return (
     <BrowserRouter>
@@ -48,6 +48,10 @@ const App = () => {
             </Layout>
           }
         />
+        <Route path="/my-requests" element={
+          <Layout>
+            <MyRequests />
+          </Layout>} />
 
       </Routes>
     </BrowserRouter>

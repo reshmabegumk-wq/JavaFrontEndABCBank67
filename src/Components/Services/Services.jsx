@@ -233,7 +233,7 @@ const Services = () => {
                         accountNumber: Number(formData.accountNumber)
                     };
                     console.log("Sending Query Request:", payload);
-                    const response = await API.post("queriesRequest/save", payload);
+                    const response = await API.post("queriesResponse/save", payload);
                     console.log("Query Request Response:", response.data);
 
                     showSnackbar("success", "Query Submitted Successfully!");

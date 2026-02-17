@@ -10,12 +10,17 @@ import {
 } from "react-icons/fa";
 import API from "../../api"; // Import API utility
 import { useSnackbar } from "../../Context/SnackbarContext";
+import { useLocation } from "react-router-dom";
 
 const Transactions = () => {
+    
+    const location=useLocation();
+    const tab=location.state?.accountNumber || "Savings";    
+    
     const { showSnackbar } = useSnackbar();
     const [searchTerm, setSearchTerm] = useState("");
     const [filterType, setFilterType] = useState("All");
-    const [activeTab, setActiveTab] = useState("Savings"); // "Savings" or "Current"
+    const [activeTab, setActiveTab] = useState(tab || "Savings"); 
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -29,8 +34,8 @@ const Transactions = () => {
                 } else if (activeTab === "Current") {
                     accountId = localStorage.getItem("currentAccount");
                 }
-
-                console.log(" accountId:", accountId);
+                console.log("accountId" , accountId);
+                
 
                 if (accountId) {
                     console.log(`Fetching transactions for ${activeTab} Account: ${accountId}`);
@@ -53,7 +58,7 @@ const Transactions = () => {
         };
 
         fetchTransactions();
-    }, []);
+    }, [activeTab]);
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {

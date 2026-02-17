@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import ProfileBar from "../Profile/Profile";
 import {
     FaTachometerAlt,
     FaCreditCard,
@@ -186,8 +187,10 @@ const Sidebar = () => {
                         {isCollapsed ? <FaChevronRight size={14} /> : <FaChevronLeft size={14} />}
                     </button>
                 </div>
+                 {/* {!isCollapsed && <ProfileBar />} */}
 
                 {/* Navigation Menu */}
+                
                 <nav style={styles.nav}>
                     <ul style={styles.navList}>
                         {menuItems.map((item) => (
