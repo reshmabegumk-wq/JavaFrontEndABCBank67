@@ -3982,15 +3982,6 @@ const MyRequests = () => {
           color: "#1E3A8A",
           letterSpacing: "0.5px"
         }}>ABC BANK</span>
-        <span style={{
-          fontSize: "12px",
-          color: "#6B7280",
-          marginLeft: "8px",
-          padding: "4px 10px",
-          background: "#F3F4F6",
-          borderRadius: "30px",
-          fontWeight: "500"
-        }}>TRUSTED. SECURE. YOURS.</span>
       </div>
 
       {/* Header with Filters */}
@@ -4207,16 +4198,6 @@ const MyRequests = () => {
                 fontWeight: "600",
                 color: "#111827",
               }}>{filteredRequests.length} Total Requests</span>
-              <span style={{
-                fontSize: "14px",
-                color: "#6B7280",
-                padding: "4px 12px",
-                backgroundColor: "white",
-                borderRadius: "20px",
-                border: "1px solid #E5E7EB",
-              }}>
-                Page {currentPage} of {totalPages}
-              </span>
             </div>
           </div>
 
@@ -4604,37 +4585,6 @@ const MyRequests = () => {
           )}
         </div>
       )}
-
-      {/* Footer */}
-      <div style={{
-        marginTop: "32px",
-        padding: "16px 24px",
-        background: "white",
-        borderRadius: "12px",
-        border: "1px solid #E5E7EB",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        flexWrap: "wrap",
-        gap: "16px",
-        fontSize: "13px",
-        color: "#6B7280",
-        animation: "fadeIn 0.4s ease"
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <FaShieldAlt size={12} color="#1E3A8A" />
-            256-bit SSL Secured
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <FaClock size={12} color="#1E3A8A" />
-            Real-time updates
-          </span>
-        </div>
-        <div>
-          24/7 Support: <strong style={{ color: "#1E3A8A" }}>1-800-BANK-NOW</strong>
-        </div>
-      </div>
     </div>
   );
 };

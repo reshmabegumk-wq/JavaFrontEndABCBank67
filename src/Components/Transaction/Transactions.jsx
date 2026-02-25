@@ -1998,15 +1998,6 @@ const Transactions = () => {
                     color: canaraBlue,
                     letterSpacing: "0.5px"
                 }}>ABC BANK</span>
-                <span style={{
-                    fontSize: "12px",
-                    color: canaraTextLight,
-                    marginLeft: "8px",
-                    padding: "4px 10px",
-                    background: canaraGray,
-                    borderRadius: "30px",
-                    fontWeight: "500"
-                }}>TRUSTED. SECURE. YOURS.</span>
             </div>
 
             <div style={styles.header}>
@@ -2090,7 +2081,6 @@ const Transactions = () => {
                             <div style={styles.loadingMenuItem}></div>
                         </div>
                         <div style={styles.loadingFooter}>
-                            <span style={styles.loadingBadge}>256-bit SSL Secured</span>
                             <span style={styles.loadingBadge}>
                                 <FaClock style={{ marginRight: "4px" }} /> Real-time
                             </span>
@@ -2112,7 +2102,6 @@ const Transactions = () => {
                             <div style={styles.loadingMenuItem}></div>
                         </div>
                         <div style={styles.loadingFooter}>
-                            <span style={styles.loadingBadge}>256-bit SSL Secured</span>
                             <span style={styles.loadingBadge}>
                                 <FaClock style={{ marginRight: "4px" }} /> Real-time
                             </span>
@@ -2281,35 +2270,6 @@ const Transactions = () => {
                 )}
             </div>
 
-            {/* Footer */}
-            <div style={{
-                marginTop: "32px",
-                padding: "16px 24px",
-                background: "white",
-                borderRadius: "12px",
-                border: `1px solid ${canaraBorder}`,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: "16px",
-                fontSize: "13px",
-                color: canaraTextLight
-            }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <FaShieldAlt size={12} color={canaraBlue} />
-                        256-bit SSL Secured
-                    </span>
-                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <FaClock size={12} color={canaraBlue} />
-                        Real-time updates
-                    </span>
-                </div>
-                <div>
-                    24/7 Support: <strong style={{ color: canaraBlue }}>1-800-BANK-NOW</strong>
-                </div>
-            </div>
         </div>
     );
 };

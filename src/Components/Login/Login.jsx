@@ -201,15 +201,8 @@ const Login = () => {
                         <p className="testimonial-text">
                             Seamless digital banking and exceptional service — ABC Bank transformed how our business operates globally.
                         </p>
-                        <div className="testimonial-author">
-                            <div className="testimonial-avatar">RK</div>
-                            <div>
-                                <span className="testimonial-name">Rajesh Kumar</span>
-                                <span className="testimonial-role">CFO, Global Ventures Ltd.</span>
-                            </div>
-                        </div>
                     </div>
-
+            
                     {/* Uptime badge */}
                     <div className="uptime-badge">
                         <span className="uptime-dot" />
@@ -236,7 +229,6 @@ const Login = () => {
                         {/* Security badge */}
                         <div className="security-badge">
                             <FaShieldAlt className="security-icon" />
-                            <span>256-bit SSL Secured</span>
                         </div>
                     </div>
 
@@ -339,11 +331,7 @@ const Login = () => {
                     <div className="card-footer">
                         <div className="support-row">
                             <FaMobileAlt className="support-icon" />
-                            <span>24/7 Support: <strong>1-800-BANK-NOW</strong></span>
-                        </div>
-                        <div className="weather-row">
-                            <span>☀️</span>
-                            <span>30°C · Sunny</span>
+                            <span>24/7 Support</span>
                         </div>
                     </div>
                 </div>

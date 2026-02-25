@@ -2796,11 +2796,6 @@ const ProfileBar = () => {
               zIndex: 1,
             }} className="button-glow" />
           </button>
-
-          <div className="security-badge">
-            <FaShieldAlt size={14} />
-            <span>256-bit SSL Secured</span>
-          </div>
         </div>
       </div>
 
