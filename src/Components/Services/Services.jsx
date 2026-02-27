@@ -11,34 +11,269 @@
 //     FaSearch,
 //     FaTimes,
 //     FaCheckCircle,
-//     FaExclamationTriangle
+//     FaExclamationTriangle,
+//     FaLock,
+//     FaUnlock
 // } from "react-icons/fa";
 // import API from "../../api";
 // import { useSnackbar } from "../../Context/SnackbarContext";
 
-// /* ─── Canara-Bank Colour Palette ─────────────────────────────────────────────
-//    Primary  : #003f7d  (Canara deep navy)
-//    Secondary: #0056a8  (mid blue)
-//    Accent   : #c8940a  (Canara gold)
-//    Light    : #e8f0fb  (pale blue tint)
-//    Surface  : #ffffff
-// ──────────────────────────────────────────────────────────────────────────── */
-
-// const THEME = {
-//     navy:      "#003f7d",
-//     navyDark:  "#002a54",
-//     blue:      "#0056a8",
-//     blueLight: "#1976d2",
-//     gold:      "#c8940a",
-//     goldLight: "#f0b429",
-//     surface:   "#ffffff",
-//     bg:        "#f0f4fa",
-//     border:    "#ccd9ee",
-//     muted:     "#5a7099",
-//     text:      "#0d1f3c",
+// // ─── THEME — matches Dashboard & Login dark navy/gold ────────────────────────
+// const T = {
+//     navyDeep:    "#0B1829",
+//     navyDark:    "#0F2035",
+//     navyMid:     "#152845",
+//     navyLight:   "#1C3558",
+//     navyBorder:  "#1F3D5C",
+//     gold:        "#F5A623",
+//     goldLight:   "#FFD166",
+//     goldGlow:    "rgba(245,166,35,0.18)",
+//     white:       "#FFFFFF",
+//     offWhite:    "#E8EFF7",
+//     muted:       "#8AAAC8",
+//     mutedDark:   "#4A6B8A",
+//     success:     "#22C55E",
+//     successBg:   "rgba(34,197,94,0.12)",
+//     danger:      "#EF4444",
+//     dangerBg:    "rgba(239,68,68,0.12)",
+//     warn:        "#F59E0B",
+//     warnBg:      "rgba(245,158,11,0.12)",
 // };
 
-// /* ─── Service definitions ─────────────────────────────────────────────────── */
+// // ─── GLOBAL CSS ───────────────────────────────────────────────────────────────
+// const GLOBAL_CSS = `
+// @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+// *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+// body {
+//     background: ${T.navyDeep};
+//     font-family: 'DM Sans', sans-serif;
+//     color: ${T.offWhite};
+// }
+
+// ::-webkit-scrollbar { width: 5px; height: 5px; }
+// ::-webkit-scrollbar-track { background: ${T.navyDark}; }
+// ::-webkit-scrollbar-thumb { background: ${T.navyLight}; border-radius: 4px; }
+// ::-webkit-scrollbar-thumb:hover { background: ${T.gold}; }
+
+// /* Animations */
+// @keyframes fadeSlideUp {
+//     from { opacity: 0; transform: translateY(20px); }
+//     to   { opacity: 1; transform: translateY(0); }
+// }
+// @keyframes cardIn {
+//     from { opacity: 0; transform: translateY(24px) scale(0.97); }
+//     to   { opacity: 1; transform: translateY(0) scale(1); }
+// }
+// @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+// @keyframes slideUp {
+//     from { opacity: 0; transform: translateY(28px); }
+//     to   { opacity: 1; transform: translateY(0); }
+// }
+// @keyframes spin { to { transform: rotate(360deg); } }
+// @keyframes shimmerAnim {
+//     0%   { background-position: -700px 0; }
+//     100% { background-position:  700px 0; }
+// }
+// @keyframes pulseGlow {
+//     0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.3); }
+//     50%       { box-shadow: 0 0 0 8px rgba(245,166,35,0); }
+// }
+
+// .fade-up { animation: fadeSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both; }
+// .shimmer-cell {
+//     background: linear-gradient(90deg, ${T.navyMid} 25%, ${T.navyLight} 50%, ${T.navyMid} 75%);
+//     background-size: 700px 100%;
+//     animation: shimmerAnim 1.4s infinite linear;
+//     border-radius: 10px;
+// }
+
+// /* ── Service cards ─────────────────────────────────────────────────────────── */
+// .svc-card {
+//     position: relative;
+//     background: ${T.navyDark};
+//     border: 1.5px solid ${T.navyBorder};
+//     border-radius: 20px;
+//     display: flex;
+//     flex-direction: column;
+//     overflow: hidden;
+//     cursor: pointer;
+//     animation: cardIn 0.42s cubic-bezier(0.22,1,0.36,1) both;
+//     animation-delay: var(--delay, 0ms);
+//     transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+//     will-change: transform;
+// }
+// .svc-card:hover {
+//     transform: translateY(-6px);
+//     border-color: var(--accent-color);
+//     box-shadow: 0 0 0 1px var(--accent-color), 0 20px 40px rgba(0,0,0,0.45);
+// }
+
+// .svc-gold-strip {
+//     height: 3px;
+//     width: 100%;
+//     flex-shrink: 0;
+// }
+
+// .svc-icon-wrap {
+//     width: 52px; height: 52px;
+//     border-radius: 14px;
+//     display: flex; align-items: center; justify-content: center;
+//     flex-shrink: 0;
+//     transition: transform 0.22s ease;
+//     border: 1px solid rgba(255,255,255,0.06);
+// }
+// .svc-card:hover .svc-icon-wrap { transform: scale(1.1) rotate(-5deg); }
+
+// .svc-tag-badge {
+//     font-size: 10px; font-weight: 700;
+//     letter-spacing: 0.1em;
+//     padding: 4px 10px;
+//     border-radius: 30px;
+// }
+
+// .svc-apply-btn {
+//     display: flex; align-items: center; justify-content: space-between;
+//     width: 100%; padding: 13px 20px;
+//     border: none; border-radius: 12px;
+//     color: #fff; font-size: 14px; font-weight: 700;
+//     cursor: pointer; font-family: 'DM Sans', sans-serif;
+//     transition: filter 0.2s ease, transform 0.18s ease;
+//     letter-spacing: 0.03em;
+// }
+// .svc-apply-btn:hover { filter: brightness(1.1); transform: scale(1.015); }
+
+// .svc-arrow-icon { transition: transform 0.22s ease; }
+// .svc-card:hover .svc-arrow-icon { transform: translateX(6px); }
+
+// .svc-glow-overlay {
+//     position: absolute; inset: 0;
+//     pointer-events: none; opacity: 0;
+//     transition: opacity 0.3s ease;
+// }
+// .svc-card:hover .svc-glow-overlay { opacity: 1; }
+
+// /* ── Search box ───────────────────────────────────────────────────────────── */
+// .search-box-wrap {
+//     display: flex; align-items: center; gap: 10px;
+//     background: ${T.navyDark};
+//     border: 1.5px solid ${T.navyBorder};
+//     border-radius: 40px;
+//     padding: 10px 14px 10px 18px;
+//     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+// }
+// .search-box-wrap:focus-within {
+//     border-color: ${T.gold};
+//     box-shadow: 0 0 0 3px ${T.goldGlow};
+// }
+
+// .search-input-field {
+//     flex: 1; border: none; outline: none;
+//     font-size: 14px; color: ${T.offWhite};
+//     background: transparent; font-family: 'DM Sans', sans-serif;
+// }
+// .search-input-field::placeholder { color: ${T.mutedDark}; }
+
+// .search-clear-btn {
+//     width: 26px; height: 26px; border-radius: 50%;
+//     border: none; background: ${T.navyMid};
+//     color: ${T.muted}; cursor: pointer;
+//     display: flex; align-items: center; justify-content: center;
+//     transition: background 0.15s ease, color 0.15s ease;
+// }
+// .search-clear-btn:hover { background: ${T.gold}; color: ${T.navyDeep}; }
+
+// /* ── Modal ─────────────────────────────────────────────────────────────────── */
+// .modal-overlay {
+//     position: fixed; inset: 0;
+//     background: rgba(5, 12, 25, 0.75);
+//     backdrop-filter: blur(8px);
+//     display: flex; align-items: center; justify-content: center;
+//     z-index: 9999; padding: 20px;
+//     animation: fadeIn 0.25s ease;
+// }
+// .modal-box {
+//     width: 100%; max-width: 490px; max-height: 92vh;
+//     overflow-y: auto;
+//     background: ${T.navyDark};
+//     border-radius: 22px;
+//     border: 1px solid ${T.navyBorder};
+//     box-shadow: 0 32px 64px rgba(0,0,0,0.6);
+//     animation: slideUp 0.3s cubic-bezier(0.22,1,0.36,1);
+// }
+
+// /* ── Form fields ────────────────────────────────────────────────────────────── */
+// .form-select, .form-input, .form-textarea {
+//     width: 100%;
+//     background: ${T.navyMid};
+//     border: 1.5px solid ${T.navyBorder};
+//     border-radius: 10px;
+//     color: ${T.offWhite};
+//     font-size: 13.5px;
+//     font-family: 'DM Sans', sans-serif;
+//     padding: 11px 14px;
+//     outline: none;
+//     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+//     appearance: auto;
+//     -webkit-appearance: auto;
+// }
+// .form-select option { background: ${T.navyMid}; color: ${T.offWhite}; }
+// .form-select:focus, .form-input:focus, .form-textarea:focus {
+//     border-color: ${T.gold};
+//     box-shadow: 0 0 0 3px ${T.goldGlow};
+// }
+// .form-select:disabled, .form-input:disabled, .form-textarea:disabled {
+//     opacity: 0.45; cursor: not-allowed;
+// }
+// .form-textarea { resize: vertical; min-height: 100px; }
+
+// /* ── Buttons ──────────────────────────────────────────────────────────────── */
+// .modal-cancel-btn {
+//     flex: 1; padding: 12px 0; border-radius: 10px;
+//     border: 1.5px solid ${T.navyBorder};
+//     background: ${T.navyMid}; color: ${T.muted};
+//     font-size: 14px; font-weight: 600;
+//     cursor: pointer; font-family: 'DM Sans', sans-serif;
+//     transition: border-color 0.18s ease, color 0.18s ease;
+// }
+// .modal-cancel-btn:hover { border-color: ${T.muted}; color: ${T.offWhite}; }
+
+// .modal-submit-btn {
+//     flex: 2; padding: 12px 0; border-radius: 10px;
+//     border: none; color: #fff;
+//     font-size: 14px; font-weight: 700;
+//     cursor: pointer; font-family: 'DM Sans', sans-serif;
+//     display: flex; align-items: center; justify-content: center; gap: 8px;
+//     transition: filter 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
+//     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+// }
+// .modal-submit-btn:not(:disabled):hover { filter: brightness(1.1); transform: translateY(-1px); }
+// .modal-submit-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+// .refresh-icon-btn {
+//     background: none; border: none; cursor: pointer;
+//     color: ${T.muted}; padding: 4px; border-radius: 6px;
+//     display: flex; align-items: center;
+//     transition: color 0.15s ease;
+// }
+// .refresh-icon-btn:hover { color: ${T.gold}; }
+
+// /* ── Empty state ──────────────────────────────────────────────────────────── */
+// .empty-state {
+//     text-align: center; padding: 56px 24px;
+//     background: ${T.navyDark};
+//     border-radius: 18px;
+//     border: 1.5px dashed ${T.navyBorder};
+//     color: ${T.muted};
+//     margin-top: 24px;
+// }
+
+// /* ── Focus rings ──────────────────────────────────────────────────────────── */
+// *:focus-visible { outline: 2px solid ${T.gold}; outline-offset: 2px; }
+// `;
+
+// // ─── Service definitions (unchanged) ─────────────────────────────────────────
 // const SERVICES = [
 //     {
 //         id: "cheque-book",
@@ -47,9 +282,10 @@
 //         title: "Cheque Leaves Request",
 //         description: "Request a new cheque book for your savings or current account",
 //         icon: FaBook,
-//         accent: "#c8940a",
-//         accentBg: "#fef8e7",
-//         gradient: "linear-gradient(135deg,#c8940a,#f0b429)",
+//         accent: T.gold,
+//         accentDim: "rgba(245,166,35,0.12)",
+//         accentBorder: "rgba(245,166,35,0.3)",
+//         gradient: `linear-gradient(135deg, #8A5E00, #C47D0E, #F5A623)`,
 //         tag: "CHEQUE SERVICES",
 //     },
 //     {
@@ -59,9 +295,10 @@
 //         title: "Increase Card Limit",
 //         description: "Request an enhancement of your credit card spending limit",
 //         icon: FaCreditCard,
-//         accent: "#0056a8",
-//         accentBg: "#e8f0fb",
-//         gradient: "linear-gradient(135deg,#003f7d,#1976d2)",
+//         accent: "#60A5FA",
+//         accentDim: "rgba(96,165,250,0.12)",
+//         accentBorder: "rgba(96,165,250,0.3)",
+//         gradient: `linear-gradient(135deg, #0F2744, #1A4070, #2563EB)`,
 //         tag: "CARD SERVICES",
 //     },
 //     {
@@ -71,9 +308,10 @@
 //         title: "Report Lost Card",
 //         description: "Immediately block and report a lost or stolen debit/credit card",
 //         icon: FaShieldAlt,
-//         accent: "#b91c1c",
-//         accentBg: "#fef2f2",
-//         gradient: "linear-gradient(135deg,#991b1b,#dc2626)",
+//         accent: "#F87171",
+//         accentDim: "rgba(248,113,113,0.12)",
+//         accentBorder: "rgba(248,113,113,0.3)",
+//         gradient: `linear-gradient(135deg, #4B0000, #991B1B, #EF4444)`,
 //         tag: "SECURITY & FRAUD",
 //     },
 //     {
@@ -83,22 +321,32 @@
 //         title: "General Query",
 //         description: "Submit enquiries about banking products and get expert assistance",
 //         icon: FaQuestionCircle,
-//         accent: "#166534",
-//         accentBg: "#f0fdf4",
-//         gradient: "linear-gradient(135deg,#14532d,#16a34a)",
+//         accent: "#34D399",
+//         accentDim: "rgba(52,211,153,0.12)",
+//         accentBorder: "rgba(52,211,153,0.3)",
+//         gradient: `linear-gradient(135deg, #064E3B, #065F46, #10B981)`,
 //         tag: "QUERIES & SUPPORT",
 //     },
 // ];
 
-// /* ═══════════════════════════════════════════════════════════════════════════ */
-// /*  MAIN COMPONENT                                                             */
-// /* ═══════════════════════════════════════════════════════════════════════════ */
+// // ═══════════════════════════════════════════════════════════════════════════════
+// // MAIN COMPONENT
+// // ═══════════════════════════════════════════════════════════════════════════════
 // const Services = () => {
 //     const { showSnackbar } = useSnackbar();
-//     const [searchQuery, setSearchQuery]       = useState("");
+//     const [searchQuery, setSearchQuery]         = useState("");
 //     const [showServiceForm, setShowServiceForm] = useState(null);
 //     const [appliedServices, setAppliedServices] = useState([]);
 //     const [customerId, setCustomerId]           = useState(null);
+
+//     // Inject global styles
+//     useEffect(() => {
+//         const tag = document.createElement("style");
+//         tag.id = "services-global-css";
+//         tag.textContent = GLOBAL_CSS;
+//         if (!document.getElementById("services-global-css")) document.head.appendChild(tag);
+//         return () => { const el = document.getElementById("services-global-css"); if (el) el.remove(); };
+//     }, []);
 
 //     useEffect(() => {
 //         const id = localStorage.getItem("customerId") || localStorage.getItem("userId") || "2";
@@ -111,7 +359,7 @@
 //         s.categoryName.toLowerCase().includes(searchQuery.toLowerCase())
 //     );
 
-//     /* ── Service Form ───────────────────────────────────────────────────── */
+//     // ── Service Form Modal ──────────────────────────────────────────────────
 //     const ServiceForm = ({ service, onClose }) => {
 //         const [formData, setFormData] = useState({
 //             accountNumber: "", noOfLeaves: "", dateLost: "",
@@ -133,27 +381,31 @@
 //             try {
 //                 const res = await API.get(`account/userAccounts/${customerId}`);
 //                 if (res.data?.status && Array.isArray(res.data.data)) {
-//                     setAccounts(res.data.data.map(acc => {
+//                     const allAccounts = res.data.data.map(acc => {
 //                         let icon = "🏦";
 //                         const n = acc.accountTypeName?.toLowerCase() || "";
 //                         if (n.includes("savings")) icon = "💰";
 //                         else if (n.includes("current")) icon = "💳";
 //                         else if (n.includes("salary"))  icon = "💼";
+//                         const isActive = acc.status?.toLowerCase() === "active";
 //                         return {
 //                             number: String(acc.accountNumber),
 //                             type: acc.accountTypeName,
 //                             icon,
-//                             displayLabel: `${acc.accountTypeName} — ****${getLast4(acc.accountNumber)}`,
+//                             status: acc.status,
+//                             isActive,
+//                             displayLabel: `${acc.accountTypeName} — ****${getLast4(acc.accountNumber)}${!isActive ? ' (Inactive)' : ''}`,
 //                         };
-//                     }));
+//                     });
+//                     setAccounts(allAccounts);
 //                 } else showSnackbar("error", "Failed to fetch accounts");
 //             } catch { showSnackbar("error", "Failed to fetch accounts. Please try again."); }
-//             finally   { setLoadingAccounts(false); }
+//             finally { setLoadingAccounts(false); }
 //         }, [customerId]);
 
 //         useEffect(() => { if (customerId) fetchAccounts(); }, [fetchAccounts, customerId]);
 
-//         /* Fetch cards when account changes */
+//         // Fetch cards when account changes
 //         useEffect(() => {
 //             const fetchCards = async () => {
 //                 if (!formData.accountNumber) { setCards([]); setSelectedCardDetails(null); return; }
@@ -195,17 +447,25 @@
 //         const isCreditLimitValid = () =>
 //             !!(formData.accountNumber && formData.selectedCardNumber && formData.requestedLimit && !limitError);
 
+//         const selectedAccount = accounts.find(acc => acc.number === formData.accountNumber);
+//         const isSelectedAccountInactive = selectedAccount && !selectedAccount.isActive;
+
 //         const isSubmitDisabled = () => {
 //             if (submitting) return true;
-//             if (service.id === "cheque-book")    return !formData.accountNumber || !formData.noOfLeaves;
-//             if (service.id === "general-query")  return !formData.accountNumber || !formData.queries;
-//             if (service.id === "stolen-card")    return !formData.accountNumber || !formData.selectedCardNumber || !formData.dateLost;
-//             if (service.id === "credit-limit")   return !isCreditLimitValid();
+//             if (isSelectedAccountInactive) return true;
+//             if (service.id === "cheque-book")   return !formData.accountNumber || !formData.noOfLeaves;
+//             if (service.id === "general-query") return !formData.accountNumber || !formData.queries;
+//             if (service.id === "stolen-card")   return !formData.accountNumber || !formData.selectedCardNumber || !formData.dateLost;
+//             if (service.id === "credit-limit")  return !isCreditLimitValid();
 //             return false;
 //         };
 
 //         const handleSubmit = async () => {
 //             if (isSubmitDisabled()) return;
+//             if (isSelectedAccountInactive) {
+//                 showSnackbar("error", "Cannot raise request with inactive account");
+//                 return;
+//             }
 //             setSubmitting(true);
 //             try {
 //                 let response, msg;
@@ -216,7 +476,6 @@
 //                     response = await API.post("queriesResponse/save", { customerQuery: formData.queries, accountNumber: Number(formData.accountNumber) });
 //                     msg = "Query Submitted Successfully!";
 //                 } else if (service.id === "stolen-card") {
-//                     const err = validateLimit; // keep reference
 //                     response = await API.post("lostCard/save", { lostCardStolenDate: formData.dateLost, cardNumber: Number(formData.selectedCardNumber) });
 //                     msg = "Card Reported Lost & Blocked Successfully!";
 //                 } else if (service.id === "credit-limit") {
@@ -235,52 +494,110 @@
 //             } finally { setSubmitting(false); }
 //         };
 
-//         /* Shared field style helpers */
-//         const fieldBorder = val => val ? service.accent : THEME.border;
+//         const fieldBorderColor = val => val ? service.accent : T.navyBorder;
 
 //         return (
-//             <div style={S.overlay}>
-//                 <div style={{ ...S.modal, borderTop: `4px solid ${service.accent}` }}>
+//             <div className="modal-overlay">
+//                 <div className="modal-box">
+//                     {/* Gold top accent line */}
+//                     <div style={{ height: 3, background: service.gradient, borderRadius: "22px 22px 0 0" }} />
+
 //                     {/* Header */}
-//                     <div style={S.modalHeader}>
-//                         <div style={{ ...S.modalIcon, background: service.accentBg, color: service.accent }}>
-//                             <service.icon size={22} />
+//                     <div style={{
+//                         display: "flex", alignItems: "center", gap: 14,
+//                         padding: "22px 22px 18px",
+//                         borderBottom: `1px solid ${T.navyBorder}`,
+//                         position: "relative",
+//                     }}>
+//                         <div style={{
+//                             width: 50, height: 50, borderRadius: 14,
+//                             background: service.accentDim,
+//                             border: `1px solid ${service.accentBorder}`,
+//                             display: "flex", alignItems: "center", justifyContent: "center",
+//                             flexShrink: 0,
+//                         }}>
+//                             <service.icon size={22} color={service.accent} />
 //                         </div>
 //                         <div style={{ flex: 1 }}>
-//                             <h3 style={S.modalTitle}>{service.title}</h3>
-//                             <p style={S.modalSub}>{service.description}</p>
+//                             <h3 style={{
+//                                 margin: "0 0 4px", fontSize: 17, fontWeight: 700,
+//                                 color: T.white, fontFamily: "'Playfair Display', serif",
+//                             }}>{service.title}</h3>
+//                             <p style={{ margin: 0, fontSize: 12.5, color: T.muted, lineHeight: 1.5 }}>
+//                                 {service.description}
+//                             </p>
 //                         </div>
-//                         <button style={S.closeBtn} onClick={onClose}><FaTimes size={14} /></button>
+//                         <button
+//                             style={{
+//                                 position: "absolute", top: 16, right: 16,
+//                                 width: 32, height: 32, borderRadius: 10,
+//                                 border: `1px solid ${T.navyBorder}`,
+//                                 background: T.navyMid, color: T.muted,
+//                                 display: "flex", alignItems: "center", justifyContent: "center",
+//                                 cursor: "pointer", transition: "all 0.15s ease",
+//                             }}
+//                             onClick={onClose}
+//                             onMouseEnter={e => { e.currentTarget.style.background = T.navyLight; e.currentTarget.style.color = T.offWhite; }}
+//                             onMouseLeave={e => { e.currentTarget.style.background = T.navyMid; e.currentTarget.style.color = T.muted; }}
+//                         >
+//                             <FaTimes size={13} />
+//                         </button>
 //                     </div>
 
 //                     {/* Body */}
-//                     <div style={S.modalBody}>
-//                         {/* Account select – all services */}
-//                         <div style={S.fieldGroup}>
-//                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Select Account</label>
-//                                 <button style={S.refreshBtn} onClick={fetchAccounts} disabled={loadingAccounts} title="Refresh">
+//                     <div style={{ padding: "22px 22px 8px" }}>
+
+//                         {/* Account select */}
+//                         <div style={{ marginBottom: 18 }}>
+//                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 7 }}>
+//                                 <label style={{ fontSize: 13, fontWeight: 600, color: service.accent }}>Select Account</label>
+//                                 <button className="refresh-icon-btn" onClick={fetchAccounts} disabled={loadingAccounts} title="Refresh">
 //                                     <FaSync size={11} style={{ animation: loadingAccounts ? "spin 1s linear infinite" : "none" }} />
 //                                 </button>
 //                             </div>
-//                             {loadingAccounts ? <LoadingField /> : (
-//                                 <select style={{ ...S.select, borderColor: fieldBorder(formData.accountNumber) }}
+//                             {loadingAccounts ? (
+//                                 <LoadingField />
+//                             ) : (
+//                                 <select
+//                                     className="form-select"
+//                                     style={{ borderColor: fieldBorderColor(formData.accountNumber) }}
 //                                     value={formData.accountNumber}
-//                                     onChange={e => setFormData({ ...formData, accountNumber: e.target.value, selectedCardNumber: "" })}>
+//                                     onChange={e => setFormData({ ...formData, accountNumber: e.target.value, selectedCardNumber: "" })}
+//                                 >
 //                                     <option value="">— Choose account —</option>
-//                                     {accounts.map(a => <option key={a.number} value={a.number}>{a.icon} {a.displayLabel}</option>)}
+//                                     {accounts.map(a => (
+//                                         <option key={a.number} value={a.number}>{a.icon} {a.displayLabel}</option>
+//                                     ))}
 //                                     {!accounts.length && <option disabled>No accounts found</option>}
 //                                 </select>
+//                             )}
+//                             {isSelectedAccountInactive && (
+//                                 <div style={{
+//                                     display: "flex", alignItems: "center", gap: 6,
+//                                     marginTop: 8, padding: "8px 12px", borderRadius: 8,
+//                                     background: T.warnBg, color: T.warn,
+//                                     border: `1px solid rgba(245,158,11,0.25)`,
+//                                     fontSize: 12.5, fontWeight: 500,
+//                                 }}>
+//                                     <FaLock size={11} />
+//                                     <span>This account is inactive. You cannot raise requests with inactive accounts.</span>
+//                                 </div>
 //                             )}
 //                         </div>
 
 //                         {/* Cheque leaves */}
 //                         {service.id === "cheque-book" && (
-//                             <div style={S.fieldGroup}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Number of Leaves</label>
-//                                 <select style={{ ...S.select, borderColor: fieldBorder(formData.noOfLeaves) }}
+//                             <div style={{ marginBottom: 18 }}>
+//                                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: service.accent, marginBottom: 7 }}>
+//                                     Number of Leaves
+//                                 </label>
+//                                 <select
+//                                     className="form-select"
+//                                     style={{ borderColor: fieldBorderColor(formData.noOfLeaves) }}
 //                                     value={formData.noOfLeaves}
-//                                     onChange={e => setFormData({ ...formData, noOfLeaves: e.target.value })}>
+//                                     disabled={isSelectedAccountInactive}
+//                                     onChange={e => setFormData({ ...formData, noOfLeaves: e.target.value })}
+//                                 >
 //                                     <option value="">— Select leaves —</option>
 //                                     <option value="20">20 Leaves</option>
 //                                     <option value="50">50 Leaves</option>
@@ -291,128 +608,247 @@
 
 //                         {/* Credit limit fields */}
 //                         {service.id === "credit-limit" && (<>
-//                             <div style={S.fieldGroup}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Select Credit Card</label>
+//                             <div style={{ marginBottom: 18 }}>
+//                                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: service.accent, marginBottom: 7 }}>
+//                                     Select Credit Card
+//                                 </label>
 //                                 {loadingCards ? <LoadingField text="Loading cards…" /> : (
-//                                     <select style={{ ...S.select, borderColor: fieldBorder(formData.selectedCardNumber) }}
+//                                     <select
+//                                         className="form-select"
+//                                         style={{ borderColor: fieldBorderColor(formData.selectedCardNumber) }}
 //                                         value={formData.selectedCardNumber}
-//                                         disabled={!formData.accountNumber || !cards.length}
-//                                         onChange={e => setFormData({ ...formData, selectedCardNumber: e.target.value })}>
+//                                         disabled={!formData.accountNumber || !cards.length || isSelectedAccountInactive}
+//                                         onChange={e => setFormData({ ...formData, selectedCardNumber: e.target.value })}
+//                                     >
 //                                         <option value="">{!formData.accountNumber ? "First select an account" : !cards.length ? "No credit cards found" : "— Select card —"}</option>
 //                                         {cards.map(c => <option key={c.cardNumber} value={c.cardNumber}>{c.display}</option>)}
 //                                     </select>
 //                                 )}
 //                             </div>
 //                             {selectedCardDetails && (
-//                                 <div style={{ ...S.infoBox, borderColor: `${service.accent}50`, background: service.accentBg }}>
-//                                     <span style={{ color: THEME.muted, fontSize: 13 }}>Current Limit</span>
-//                                     <span style={{ color: service.accent, fontWeight: 700, fontSize: 16 }}>₹{Number(selectedCardDetails.currentLimit || 0).toLocaleString()}</span>
+//                                 <div style={{
+//                                     display: "flex", justifyContent: "space-between", alignItems: "center",
+//                                     padding: "12px 16px", borderRadius: 10,
+//                                     border: `1px solid ${service.accentBorder}`,
+//                                     background: service.accentDim, marginBottom: 18,
+//                                 }}>
+//                                     <span style={{ color: T.muted, fontSize: 13 }}>Current Limit</span>
+//                                     <span style={{ color: service.accent, fontWeight: 700, fontSize: 16, fontFamily: "'JetBrains Mono', monospace" }}>
+//                                         ₹{Number(selectedCardDetails.currentLimit || 0).toLocaleString()}
+//                                     </span>
 //                                 </div>
 //                             )}
-//                             <div style={S.fieldGroup}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Requested New Limit (₹)</label>
-//                                 <input type="number" min="0" step="1000"
-//                                     style={{ ...S.input, borderColor: limitError ? "#dc2626" : fieldBorder(formData.requestedLimit), background: limitError ? "#fef2f2" : THEME.bg }}
-//                                     value={formData.requestedLimit} disabled={!selectedCardDetails}
+//                             <div style={{ marginBottom: 18 }}>
+//                                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: service.accent, marginBottom: 7 }}>
+//                                     Requested New Limit (₹)
+//                                 </label>
+//                                 <input
+//                                     type="number" min="0" step="1000"
+//                                     className="form-input"
+//                                     style={{ borderColor: limitError ? T.danger : fieldBorderColor(formData.requestedLimit) }}
+//                                     value={formData.requestedLimit}
+//                                     disabled={!selectedCardDetails || isSelectedAccountInactive}
 //                                     placeholder="Enter desired limit"
-//                                     onChange={e => { setFormData({ ...formData, requestedLimit: e.target.value }); setLimitError(validateLimit(e.target.value)); }} />
-//                                 {limitError && <div style={S.errorMsg}><FaExclamationTriangle size={11} /> {limitError}</div>}
-//                                 {!limitError && formData.requestedLimit && Number(formData.requestedLimit) > Number(selectedCardDetails?.currentLimit || 0) &&
-//                                     <div style={S.validMsg}><FaCheckCircle size={11} /> Valid amount</div>}
+//                                     onChange={e => { setFormData({ ...formData, requestedLimit: e.target.value }); setLimitError(validateLimit(e.target.value)); }}
+//                                 />
+//                                 {limitError && (
+//                                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, padding: "8px 12px", borderRadius: 8, background: T.dangerBg, color: T.danger, border: `1px solid rgba(239,68,68,0.25)`, fontSize: 12.5, fontWeight: 500 }}>
+//                                         <FaExclamationTriangle size={11} /> {limitError}
+//                                     </div>
+//                                 )}
+//                                 {!limitError && formData.requestedLimit && Number(formData.requestedLimit) > Number(selectedCardDetails?.currentLimit || 0) && (
+//                                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, padding: "8px 12px", borderRadius: 8, background: T.successBg, color: T.success, border: `1px solid rgba(34,197,94,0.25)`, fontSize: 12.5, fontWeight: 500 }}>
+//                                         <FaCheckCircle size={11} /> Valid amount
+//                                     </div>
+//                                 )}
 //                             </div>
 //                         </>)}
 
-//                         {/* Stolen card fields */}
+//                         {/* Lost card fields */}
 //                         {service.id === "stolen-card" && (<>
-//                             <div style={S.fieldGroup}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Select Lost Card</label>
+//                             <div style={{ marginBottom: 18 }}>
+//                                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: service.accent, marginBottom: 7 }}>
+//                                     Select Lost Card
+//                                 </label>
 //                                 {loadingCards ? <LoadingField text="Loading cards…" /> : (
-//                                     <select style={{ ...S.select, borderColor: fieldBorder(formData.selectedCardNumber) }}
+//                                     <select
+//                                         className="form-select"
+//                                         style={{ borderColor: fieldBorderColor(formData.selectedCardNumber) }}
 //                                         value={formData.selectedCardNumber}
-//                                         disabled={!formData.accountNumber || !cards.length}
-//                                         onChange={e => setFormData({ ...formData, selectedCardNumber: e.target.value })}>
+//                                         disabled={!formData.accountNumber || !cards.length || isSelectedAccountInactive}
+//                                         onChange={e => setFormData({ ...formData, selectedCardNumber: e.target.value })}
+//                                     >
 //                                         <option value="">{!formData.accountNumber ? "First select an account" : !cards.length ? "No active cards found" : "— Select card —"}</option>
 //                                         {cards.map(c => <option key={c.cardNumber} value={c.cardNumber}>{c.display}</option>)}
 //                                     </select>
 //                                 )}
 //                             </div>
-//                             <div style={S.fieldGroup}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Date Lost</label>
-//                                 <input type="date" style={{ ...S.input, borderColor: fieldBorder(formData.dateLost) }}
-//                                     value={formData.dateLost} max={new Date().toISOString().split("T")[0]}
-//                                     onChange={e => setFormData({ ...formData, dateLost: e.target.value })} />
+//                             <div style={{ marginBottom: 18 }}>
+//                                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: service.accent, marginBottom: 7 }}>
+//                                     Date Lost
+//                                 </label>
+//                                 <input
+//                                     type="date"
+//                                     className="form-input"
+//                                     style={{ borderColor: fieldBorderColor(formData.dateLost), colorScheme: "dark" }}
+//                                     value={formData.dateLost}
+//                                     max={new Date().toISOString().split("T")[0]}
+//                                     disabled={isSelectedAccountInactive}
+//                                     onChange={e => setFormData({ ...formData, dateLost: e.target.value })}
+//                                 />
 //                             </div>
 //                         </>)}
 
 //                         {/* General query */}
 //                         {service.id === "general-query" && (
-//                             <div style={S.fieldGroup}>
-//                                 <label style={{ ...S.label, color: service.accent }}>Your Query</label>
-//                                 <textarea rows={4} placeholder="Type your question here…"
-//                                     style={{ ...S.textarea, borderColor: fieldBorder(formData.queries) }}
+//                             <div style={{ marginBottom: 18 }}>
+//                                 <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: service.accent, marginBottom: 7 }}>
+//                                     Your Query
+//                                 </label>
+//                                 <textarea
+//                                     rows={4}
+//                                     className="form-textarea"
+//                                     placeholder={isSelectedAccountInactive ? "Cannot submit query with inactive account" : "Type your question here…"}
+//                                     style={{ borderColor: fieldBorderColor(formData.queries) }}
 //                                     value={formData.queries}
-//                                     onChange={e => setFormData({ ...formData, queries: e.target.value })} />
+//                                     disabled={isSelectedAccountInactive}
+//                                     onChange={e => setFormData({ ...formData, queries: e.target.value })}
+//                                 />
 //                             </div>
 //                         )}
 //                     </div>
 
 //                     {/* Footer */}
-//                     <div style={S.modalFooter}>
-//                         <button style={S.cancelBtn} onClick={onClose} disabled={submitting}>Cancel</button>
-//                         <button style={{ ...S.submitBtn, background: service.gradient, opacity: isSubmitDisabled() ? 0.5 : 1, cursor: isSubmitDisabled() ? "not-allowed" : "pointer" }}
-//                             disabled={isSubmitDisabled()} onClick={handleSubmit}>
-//                             {submitting ? <><Spinner color="#fff" />&nbsp;Processing…</> : <>Submit Request &nbsp;<FaArrowRight size={12} /></>}
+//                     <div style={{
+//                         display: "flex", gap: 10,
+//                         padding: "16px 22px 22px",
+//                         borderTop: `1px solid ${T.navyBorder}`,
+//                     }}>
+//                         <button className="modal-cancel-btn" onClick={onClose} disabled={submitting}>
+//                             Cancel
 //                         </button>
+//                         {isSelectedAccountInactive ? (
+//                             <button className="modal-submit-btn" style={{ background: service.gradient }} disabled>
+//                                 <FaLock size={12} /> Inactive Account
+//                             </button>
+//                         ) : (
+//                             <button
+//                                 className="modal-submit-btn"
+//                                 style={{ background: service.gradient }}
+//                                 disabled={isSubmitDisabled()}
+//                                 onClick={handleSubmit}
+//                             >
+//                                 {submitting
+//                                     ? <><Spinner />&nbsp;Processing…</>
+//                                     : <>Submit Request &nbsp;<FaArrowRight size={12} /></>
+//                                 }
+//                             </button>
+//                         )}
 //                     </div>
 //                 </div>
 //             </div>
 //         );
 //     };
 
-//     /* ── Render ─────────────────────────────────────────────────────────── */
+//     // ── Render ──────────────────────────────────────────────────────────────
 //     return (
-//         <div style={S.page}>
-//             <style>{CSS}</style>
+//         <div style={{
+//             minHeight: "100vh",
+//             background: T.navyDeep,
+//             padding: "40px 32px 60px",
+//             fontFamily: "'DM Sans', sans-serif",
+//             maxWidth: 1180,
+//             margin: "0 auto",
+//             color: T.offWhite,
+//         }}>
 
-//             {/* Page header */}
-//             <div style={S.pageHeader}>
-//                 <div style={S.headerBadge}>SELF-SERVICE PORTAL</div>
-//                 <h1 style={S.pageTitle}>Banking Services</h1>
-//                 <p style={S.pageSub}>Manage your banking requests securely from one place</p>
+//             {/* ── Page Header ─────────────────────────────────────────────── */}
+//             <div className="fade-up" style={{ textAlign: "center", marginBottom: 44 }}>
+//                 {/* Badge */}
+//                 <div style={{
+//                     display: "inline-flex", alignItems: "center", gap: 8,
+//                     background: T.navyMid,
+//                     border: `1px solid ${T.navyBorder}`,
+//                     color: T.gold,
+//                     fontSize: 11, fontWeight: 700,
+//                     letterSpacing: "0.12em",
+//                     padding: "5px 16px",
+//                     borderRadius: 30,
+//                     marginBottom: 18,
+//                 }}>
+//                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.gold, animation: "pulseGlow 2s infinite" }} />
+//                     SELF-SERVICE PORTAL
+//                 </div>
+
+//                 <h1 style={{
+//                     margin: "0 0 12px",
+//                     fontSize: 40,
+//                     fontWeight: 700,
+//                     color: T.white,
+//                     fontFamily: "'Playfair Display', serif",
+//                     letterSpacing: "-0.02em",
+//                 }}>
+//                     Banking <span style={{ color: T.gold }}>Services</span>
+//                 </h1>
+
+//                 <p style={{ margin: 0, color: T.muted, fontSize: 15 }}>
+//                     Manage your banking requests securely from one place
+//                 </p>
+
+//                 {/* Gold divider */}
+//                 <div style={{
+//                     height: 1,
+//                     background: `linear-gradient(90deg, transparent, ${T.gold}, transparent)`,
+//                     maxWidth: 300, margin: "24px auto 0", opacity: 0.4,
+//                 }} />
 //             </div>
 
-//             {/* Search */}
-//             <div style={S.searchWrap}>
-//                 <div style={S.searchBox}>
-//                     <FaSearch style={{ color: THEME.muted, fontSize: 15, flexShrink: 0 }} />
-//                     <input style={S.searchInput} type="text" value={searchQuery}
+//             {/* ── Search ──────────────────────────────────────────────────── */}
+//             <div className="fade-up" style={{ maxWidth: 560, margin: "0 auto 44px", animationDelay: "0.05s" }}>
+//                 <div className="search-box-wrap">
+//                     <FaSearch style={{ color: T.mutedDark, fontSize: 15, flexShrink: 0 }} />
+//                     <input
+//                         className="search-input-field"
+//                         type="text"
+//                         value={searchQuery}
 //                         placeholder="Search services by name, category or description…"
-//                         onChange={e => setSearchQuery(e.target.value)} />
+//                         onChange={e => setSearchQuery(e.target.value)}
+//                     />
 //                     {searchQuery && (
-//                         <button style={S.clearBtn} onClick={() => setSearchQuery("")}><FaTimes size={12} /></button>
+//                         <button className="search-clear-btn" onClick={() => setSearchQuery("")}>
+//                             <FaTimes size={12} />
+//                         </button>
 //                     )}
 //                 </div>
 //                 {searchQuery && (
-//                     <p style={{ color: THEME.muted, fontSize: 13, marginTop: 8, marginLeft: 4 }}>
+//                     <p style={{ color: T.muted, fontSize: 13, marginTop: 8, marginLeft: 6 }}>
 //                         {filteredServices.length} result{filteredServices.length !== 1 ? "s" : ""} found
 //                     </p>
 //                 )}
 //             </div>
 
-//             {/* Grid */}
-//             <div style={S.grid}>
+//             {/* ── Grid ────────────────────────────────────────────────────── */}
+//             <div style={{
+//                 display: "grid",
+//                 gridTemplateColumns: "repeat(2, 1fr)",
+//                 gap: 24,
+//             }}>
 //                 {filteredServices.map((svc, i) => (
 //                     <ServiceCard key={svc.id} svc={svc} index={i} onClick={() => setShowServiceForm(svc)} />
 //                 ))}
 //             </div>
 
+//             {/* Empty state */}
 //             {!filteredServices.length && (
-//                 <div style={S.empty}>
-//                     <FaSearch size={28} style={{ color: THEME.muted, marginBottom: 12 }} />
-//                     <p style={{ color: THEME.muted, margin: 0 }}>No services match "<strong>{searchQuery}</strong>"</p>
+//                 <div className="empty-state">
+//                     <FaSearch size={28} style={{ color: T.mutedDark, marginBottom: 14 }} />
+//                     <p style={{ color: T.muted, margin: 0, fontSize: 14 }}>
+//                         No services match "<strong style={{ color: T.offWhite }}>{searchQuery}</strong>"
+//                     </p>
 //                 </div>
 //             )}
 
+//             {/* Modal */}
 //             {showServiceForm && (
 //                 <ServiceForm service={showServiceForm} onClose={() => setShowServiceForm(null)} />
 //             )}
@@ -420,336 +856,89 @@
 //     );
 // };
 
-// /* ─── Service Card ──────────────────────────────────────────────────────────── */
+// // ─── Service Card ─────────────────────────────────────────────────────────────
 // const ServiceCard = ({ svc, index, onClick }) => (
 //     <div
 //         className="svc-card"
-//         style={{ "--delay": `${index * 80}ms`, "--accent": svc.accent, "--accent-bg": svc.accentBg }}
+//         style={{ "--delay": `${index * 80}ms`, "--accent-color": svc.accent }}
 //         onClick={onClick}
 //     >
-//         {/* Top strip */}
-//         <div className="svc-strip" style={{ background: svc.gradient }} />
+//         {/* Gradient top strip */}
+//         <div className="svc-gold-strip" style={{ background: svc.gradient }} />
 
 //         <div style={{ padding: "24px 24px 20px" }}>
-//             {/* Icon + tag row */}
-//             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
-//                 <div className="svc-icon" style={{ background: svc.accentBg, color: svc.accent }}>
-//                     <svc.icon size={22} />
+//             {/* Icon + tag */}
+//             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+//                 <div
+//                     className="svc-icon-wrap"
+//                     style={{ background: svc.accentDim, border: `1px solid ${svc.accentBorder}` }}
+//                 >
+//                     <svc.icon size={22} color={svc.accent} />
 //                 </div>
-//                 <span className="svc-tag" style={{ color: svc.accent, background: svc.accentBg }}>
+//                 <span
+//                     className="svc-tag-badge"
+//                     style={{ color: svc.accent, background: svc.accentDim, border: `1px solid ${svc.accentBorder}` }}
+//                 >
 //                     {svc.tag}
 //                 </span>
 //             </div>
 
-//             {/* Text */}
-//             <h3 style={S.cardTitle}>{svc.title}</h3>
-//             <p style={S.cardDesc}>{svc.description}</p>
+//             <h3 style={{
+//                 margin: "0 0 10px", fontSize: 19, fontWeight: 700,
+//                 color: T.white, fontFamily: "'Playfair Display', serif",
+//                 letterSpacing: "-0.01em",
+//             }}>
+//                 {svc.title}
+//             </h3>
+//             <p style={{ margin: 0, fontSize: 13.5, color: T.muted, lineHeight: 1.65 }}>
+//                 {svc.description}
+//             </p>
 //         </div>
 
-//         {/* CTA */}
+//         {/* CTA button */}
 //         <div style={{ padding: "0 24px 24px", marginTop: "auto" }}>
-//             <button className="svc-btn" style={{ background: svc.gradient }}>
+//             {/* Thin gold divider above button */}
+//             <div style={{
+//                 height: 1,
+//                 background: `linear-gradient(90deg, transparent, ${svc.accent}40, transparent)`,
+//                 marginBottom: 16,
+//             }} />
+//             <button className="svc-apply-btn" style={{ background: svc.gradient }}>
 //                 <span>Apply Now</span>
-//                 <FaArrowRight size={12} className="svc-arrow" />
+//                 <FaArrowRight size={13} className="svc-arrow-icon" />
 //             </button>
 //         </div>
 
-//         {/* Hover glow */}
-//         <div className="svc-glow" style={{ background: `radial-gradient(circle at 50% 0%, ${svc.accent}18 0%, transparent 70%)` }} />
+//         {/* Hover glow overlay */}
+//         <div
+//             className="svc-glow-overlay"
+//             style={{ background: `radial-gradient(circle at 50% 0%, ${svc.accent}14 0%, transparent 70%)` }}
+//         />
 //     </div>
 // );
 
-// /* ─── Helpers ───────────────────────────────────────────────────────────────── */
+// // ─── Helpers ──────────────────────────────────────────────────────────────────
 // const LoadingField = ({ text = "Loading accounts…" }) => (
-//     <div style={S.loadingField}>
-//         <Spinner color={THEME.navy} />
-//         <span style={{ fontSize: 13, color: THEME.muted }}>{text}</span>
-//     </div>
-// );
-
-// const Spinner = ({ color = THEME.navy, size = 18 }) => (
-//     <span style={{
-//         display: "inline-block", width: size, height: size, minWidth: size,
-//         border: `2px solid ${color}30`, borderTopColor: color,
-//         borderRadius: "50%", animation: "spin 0.75s linear infinite",
-//     }} />
-// );
-
-// /* ═══════════════════════════════════════════════════════════════════════════ */
-// /*  STYLES                                                                     */
-// /* ═══════════════════════════════════════════════════════════════════════════ */
-// const S = {
-//     page: {
-//         minHeight: "100vh",
-//         background: THEME.bg,
-//         padding: "40px 32px 60px",
-//         fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
-//         maxWidth: 1180,
-//         margin: "0 auto",
-//     },
-
-//     /* Header */
-//     pageHeader: { textAlign: "center", marginBottom: 40 },
-//     headerBadge: {
-//         display: "inline-block",
-//         background: THEME.navy,
-//         color: THEME.goldLight,
-//         fontSize: 11,
-//         fontWeight: 700,
-//         letterSpacing: "0.12em",
-//         padding: "5px 14px",
-//         borderRadius: 30,
-//         marginBottom: 14,
-//     },
-//     pageTitle: {
-//         margin: "0 0 10px",
-//         fontSize: 38,
-//         fontWeight: 800,
-//         color: THEME.navy,
-//         letterSpacing: "-0.02em",
-//     },
-//     pageSub: { margin: 0, color: THEME.muted, fontSize: 15 },
-
-//     /* Search */
-//     searchWrap: { maxWidth: 560, margin: "0 auto 40px" },
-//     searchBox: {
-//         display: "flex",
-//         alignItems: "center",
-//         gap: 10,
-//         background: THEME.surface,
-//         border: `1.5px solid ${THEME.border}`,
-//         borderRadius: 40,
-//         padding: "10px 14px 10px 18px",
-//         boxShadow: "0 2px 12px rgba(0,63,125,0.07)",
-//         transition: "box-shadow .2s",
-//     },
-//     searchInput: {
-//         flex: 1, border: "none", outline: "none", fontSize: 14,
-//         color: THEME.text, background: "transparent", fontFamily: "inherit",
-//     },
-//     clearBtn: {
-//         width: 26, height: 26, borderRadius: "50%", border: "none",
-//         background: THEME.bg, color: THEME.muted, cursor: "pointer",
-//         display: "flex", alignItems: "center", justifyContent: "center",
-//     },
-
-//     /* Grid */
-//     grid: {
-//         display: "grid",
-//         gridTemplateColumns: "repeat(2, 1fr)",
-//         gap: 24,
-//     },
-
-//     /* Card text */
-//     cardTitle: { margin: "0 0 8px", fontSize: 19, fontWeight: 700, color: THEME.text },
-//     cardDesc:  { margin: 0, fontSize: 13.5, color: THEME.muted, lineHeight: 1.6 },
-
-//     /* Empty */
-//     empty: {
-//         textAlign: "center", padding: "56px 24px",
-//         background: THEME.surface, borderRadius: 16,
-//         border: `1.5px dashed ${THEME.border}`, marginTop: 24,
-//     },
-
-//     /* Modal */
-//     overlay: {
-//         position: "fixed", inset: 0,
-//         background: "rgba(0,15,40,0.6)",
-//         backdropFilter: "blur(6px)",
-//         display: "flex", alignItems: "center", justifyContent: "center",
-//         zIndex: 9999, padding: 20, animation: "fadeIn .25s ease",
-//     },
-//     modal: {
-//         width: "100%", maxWidth: 480, maxHeight: "92vh",
-//         overflowY: "auto", background: THEME.surface,
-//         borderRadius: 20, boxShadow: "0 24px 48px rgba(0,20,60,0.22)",
-//         animation: "slideUp .3s ease",
-//     },
-//     modalHeader: {
-//         display: "flex", alignItems: "center", gap: 14,
-//         padding: "22px 22px 18px",
-//         borderBottom: `1px solid ${THEME.border}`,
-//         position: "relative",
-//     },
-//     modalIcon: {
-//         width: 50, height: 50, borderRadius: 14,
-//         display: "flex", alignItems: "center", justifyContent: "center",
-//         flexShrink: 0,
-//     },
-//     modalTitle: { margin: "0 0 3px", fontSize: 18, fontWeight: 700, color: THEME.text },
-//     modalSub:   { margin: 0, fontSize: 12.5, color: THEME.muted, lineHeight: 1.5 },
-//     closeBtn: {
-//         position: "absolute", top: 18, right: 18,
-//         width: 32, height: 32, borderRadius: 10,
-//         border: `1px solid ${THEME.border}`,
-//         background: THEME.bg, color: THEME.muted,
-//         display: "flex", alignItems: "center", justifyContent: "center",
-//         cursor: "pointer",
-//     },
-//     modalBody:   { padding: "22px 22px 8px" },
-//     modalFooter: {
-//         display: "flex", gap: 10, padding: "16px 22px 22px",
-//         borderTop: `1px solid ${THEME.border}`,
-//     },
-
-//     /* Form fields */
-//     fieldGroup: { marginBottom: 18 },
-//     label: { display: "block", fontSize: 13, fontWeight: 600, marginBottom: 7 },
-//     select: {
-//         width: "100%", padding: "11px 14px", borderRadius: 10,
-//         border: `1.5px solid ${THEME.border}`,
-//         background: THEME.bg, color: THEME.text,
-//         fontSize: 13.5, fontFamily: "inherit", cursor: "pointer",
-//         outline: "none", appearance: "auto",
-//     },
-//     input: {
-//         width: "100%", padding: "11px 14px", borderRadius: 10,
-//         border: `1.5px solid ${THEME.border}`,
-//         background: THEME.bg, color: THEME.text,
-//         fontSize: 13.5, fontFamily: "inherit", outline: "none",
-//         boxSizing: "border-box",
-//     },
-//     textarea: {
-//         width: "100%", padding: "11px 14px", borderRadius: 10,
-//         border: `1.5px solid ${THEME.border}`,
-//         background: THEME.bg, color: THEME.text,
-//         fontSize: 13.5, fontFamily: "inherit", outline: "none",
-//         resize: "vertical", minHeight: 100, boxSizing: "border-box",
-//     },
-//     infoBox: {
-//         display: "flex", justifyContent: "space-between", alignItems: "center",
-//         padding: "11px 14px", borderRadius: 10, border: "1px solid",
-//         marginBottom: 18,
-//     },
-//     errorMsg: {
-//         display: "flex", alignItems: "center", gap: 6,
-//         marginTop: 6, padding: "8px 12px", borderRadius: 8,
-//         background: "#fef2f2", color: "#dc2626",
-//         fontSize: 12.5, fontWeight: 500,
-//     },
-//     validMsg: {
-//         display: "flex", alignItems: "center", gap: 6,
-//         marginTop: 6, padding: "8px 12px", borderRadius: 8,
-//         background: "#f0fdf4", color: "#16a34a",
-//         fontSize: 12.5, fontWeight: 500,
-//     },
-//     loadingField: {
+//     <div style={{
 //         display: "flex", alignItems: "center", gap: 10,
 //         padding: "12px 14px", borderRadius: 10,
-//         border: `1.5px solid ${THEME.border}`, background: THEME.bg,
-//     },
+//         border: `1.5px solid ${T.navyBorder}`,
+//         background: T.navyMid,
+//     }}>
+//         <Spinner />
+//         <span style={{ fontSize: 13, color: T.muted }}>{text}</span>
+//     </div>
+// );
 
-//     /* Buttons */
-//     refreshBtn: {
-//         background: "none", border: "none", cursor: "pointer",
-//         color: THEME.muted, padding: 4, display: "flex",
-//         alignItems: "center", borderRadius: 6,
-//     },
-//     cancelBtn: {
-//         flex: 1, padding: "12px 0", borderRadius: 10,
-//         border: `1.5px solid ${THEME.border}`,
-//         background: THEME.bg, color: THEME.muted,
-//         fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-//     },
-//     submitBtn: {
-//         flex: 2, padding: "12px 0", borderRadius: 10,
-//         border: "none", color: "#fff",
-//         fontSize: 14, fontWeight: 700, cursor: "pointer",
-//         display: "flex", alignItems: "center", justifyContent: "center",
-//         gap: 6, fontFamily: "inherit",
-//         boxShadow: "0 4px 14px rgba(0,63,125,0.25)",
-//         transition: "opacity .2s, transform .15s",
-//     },
-// };
-
-// /* ─── Injected CSS (animations + card hover) ────────────────────────────── */
-// const CSS = `
-// @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
-
-// @keyframes spin     { to { transform: rotate(360deg); } }
-// @keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
-// @keyframes slideUp  { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-// @keyframes cardIn   { from { opacity:0; transform:translateY(20px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
-
-// .svc-card {
-//     position: relative;
-//     background: #fff;
-//     border-radius: 16px;
-//     border: 1.5px solid ${THEME.border};
-//     display: flex;
-//     flex-direction: column;
-//     overflow: hidden;
-//     cursor: pointer;
-//     animation: cardIn .4s ease both;
-//     animation-delay: var(--delay, 0ms);
-//     transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
-//     will-change: transform;
-// }
-
-// .svc-card:hover {
-//     transform: translateY(-5px);
-//     box-shadow: 0 16px 36px rgba(0,63,125,0.13);
-//     border-color: var(--accent);
-// }
-
-// .svc-strip {
-//     height: 5px;
-//     width: 100%;
-//     flex-shrink: 0;
-// }
-
-// .svc-icon {
-//     width: 48px; height: 48px;
-//     border-radius: 12px;
-//     display: flex; align-items: center; justify-content: center;
-//     flex-shrink: 0;
-//     transition: transform .22s ease;
-// }
-// .svc-card:hover .svc-icon { transform: scale(1.1) rotate(-4deg); }
-
-// .svc-tag {
-//     font-size: 10.5px; font-weight: 700;
-//     letter-spacing: .09em;
-//     padding: 5px 11px;
-//     border-radius: 30px;
-// }
-
-// .svc-btn {
-//     display: flex; align-items: center; justify-content: space-between;
-//     width: 100%; padding: 13px 20px;
-//     border: none; border-radius: 10px;
-//     color: #fff; font-size: 14px; font-weight: 700;
-//     cursor: pointer; font-family: inherit;
-//     transition: filter .2s ease, transform .2s ease;
-//     letter-spacing: .02em;
-// }
-// .svc-btn:hover { filter: brightness(1.08); transform: scale(1.015); }
-
-// .svc-arrow {
-//     transition: transform .22s ease;
-// }
-// .svc-card:hover .svc-arrow { transform: translateX(5px); }
-
-// .svc-glow {
-//     position: absolute; inset: 0;
-//     pointer-events: none;
-//     opacity: 0;
-//     transition: opacity .3s ease;
-// }
-// .svc-card:hover .svc-glow { opacity: 1; }
-
-// /* Focus ring */
-// input:focus, select:focus, textarea:focus {
-//     outline: none;
-//     box-shadow: 0 0 0 3px ${THEME.navy}25 !important;
-//     border-color: ${THEME.navy} !important;
-// }
-
-// /* Scrollbar */
-// ::-webkit-scrollbar { width: 6px; }
-// ::-webkit-scrollbar-track { background: transparent; }
-// ::-webkit-scrollbar-thumb { background: ${THEME.border}; border-radius: 99px; }
-// `;
+// const Spinner = ({ size = 18 }) => (
+//     <span style={{
+//         display: "inline-block", width: size, height: size, minWidth: size,
+//         border: `2px solid rgba(245,166,35,0.2)`,
+//         borderTopColor: T.gold,
+//         borderRadius: "50%",
+//         animation: "spin 0.75s linear infinite",
+//     }} />
+// );
 
 // export default Services;
 
@@ -760,14 +949,11 @@ import {
     FaShieldAlt,
     FaQuestionCircle,
     FaArrowRight,
-    FaFileAlt,
     FaSync,
-    FaSearch,
     FaTimes,
     FaCheckCircle,
     FaExclamationTriangle,
     FaLock,
-    FaUnlock
 } from "react-icons/fa";
 import API from "../../api";
 import { useSnackbar } from "../../Context/SnackbarContext";
@@ -908,36 +1094,6 @@ body {
 }
 .svc-card:hover .svc-glow-overlay { opacity: 1; }
 
-/* ── Search box ───────────────────────────────────────────────────────────── */
-.search-box-wrap {
-    display: flex; align-items: center; gap: 10px;
-    background: ${T.navyDark};
-    border: 1.5px solid ${T.navyBorder};
-    border-radius: 40px;
-    padding: 10px 14px 10px 18px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.search-box-wrap:focus-within {
-    border-color: ${T.gold};
-    box-shadow: 0 0 0 3px ${T.goldGlow};
-}
-
-.search-input-field {
-    flex: 1; border: none; outline: none;
-    font-size: 14px; color: ${T.offWhite};
-    background: transparent; font-family: 'DM Sans', sans-serif;
-}
-.search-input-field::placeholder { color: ${T.mutedDark}; }
-
-.search-clear-btn {
-    width: 26px; height: 26px; border-radius: 50%;
-    border: none; background: ${T.navyMid};
-    color: ${T.muted}; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-.search-clear-btn:hover { background: ${T.gold}; color: ${T.navyDeep}; }
-
 /* ── Modal ─────────────────────────────────────────────────────────────────── */
 .modal-overlay {
     position: fixed; inset: 0;
@@ -1013,21 +1169,11 @@ body {
 }
 .refresh-icon-btn:hover { color: ${T.gold}; }
 
-/* ── Empty state ──────────────────────────────────────────────────────────── */
-.empty-state {
-    text-align: center; padding: 56px 24px;
-    background: ${T.navyDark};
-    border-radius: 18px;
-    border: 1.5px dashed ${T.navyBorder};
-    color: ${T.muted};
-    margin-top: 24px;
-}
-
 /* ── Focus rings ──────────────────────────────────────────────────────────── */
 *:focus-visible { outline: 2px solid ${T.gold}; outline-offset: 2px; }
 `;
 
-// ─── Service definitions (unchanged) ─────────────────────────────────────────
+// ─── Service definitions ─────────────────────────────────────────────────────────
 const SERVICES = [
     {
         id: "cheque-book",
@@ -1088,7 +1234,6 @@ const SERVICES = [
 // ═══════════════════════════════════════════════════════════════════════════════
 const Services = () => {
     const { showSnackbar } = useSnackbar();
-    const [searchQuery, setSearchQuery]         = useState("");
     const [showServiceForm, setShowServiceForm] = useState(null);
     const [appliedServices, setAppliedServices] = useState([]);
     const [customerId, setCustomerId]           = useState(null);
@@ -1106,12 +1251,6 @@ const Services = () => {
         const id = localStorage.getItem("customerId") || localStorage.getItem("userId") || "2";
         setCustomerId(id);
     }, []);
-
-    const filteredServices = SERVICES.filter(s =>
-        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.categoryName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
 
     // ── Service Form Modal ──────────────────────────────────────────────────
     const ServiceForm = ({ service, onClose }) => {
@@ -1557,50 +1696,16 @@ const Services = () => {
                 }} />
             </div>
 
-            {/* ── Search ──────────────────────────────────────────────────── */}
-            <div className="fade-up" style={{ maxWidth: 560, margin: "0 auto 44px", animationDelay: "0.05s" }}>
-                <div className="search-box-wrap">
-                    <FaSearch style={{ color: T.mutedDark, fontSize: 15, flexShrink: 0 }} />
-                    <input
-                        className="search-input-field"
-                        type="text"
-                        value={searchQuery}
-                        placeholder="Search services by name, category or description…"
-                        onChange={e => setSearchQuery(e.target.value)}
-                    />
-                    {searchQuery && (
-                        <button className="search-clear-btn" onClick={() => setSearchQuery("")}>
-                            <FaTimes size={12} />
-                        </button>
-                    )}
-                </div>
-                {searchQuery && (
-                    <p style={{ color: T.muted, fontSize: 13, marginTop: 8, marginLeft: 6 }}>
-                        {filteredServices.length} result{filteredServices.length !== 1 ? "s" : ""} found
-                    </p>
-                )}
-            </div>
-
             {/* ── Grid ────────────────────────────────────────────────────── */}
             <div style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(2, 1fr)",
                 gap: 24,
             }}>
-                {filteredServices.map((svc, i) => (
+                {SERVICES.map((svc, i) => (
                     <ServiceCard key={svc.id} svc={svc} index={i} onClick={() => setShowServiceForm(svc)} />
                 ))}
             </div>
-
-            {/* Empty state */}
-            {!filteredServices.length && (
-                <div className="empty-state">
-                    <FaSearch size={28} style={{ color: T.mutedDark, marginBottom: 14 }} />
-                    <p style={{ color: T.muted, margin: 0, fontSize: 14 }}>
-                        No services match "<strong style={{ color: T.offWhite }}>{searchQuery}</strong>"
-                    </p>
-                </div>
-            )}
 
             {/* Modal */}
             {showServiceForm && (
