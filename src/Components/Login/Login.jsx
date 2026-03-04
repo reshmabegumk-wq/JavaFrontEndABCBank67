@@ -291,11 +291,6 @@ const Login = () => {
                             {errors.password && <span className="field-error">{errors.password}</span>}
                         </div>
 
-                        {/* Forgot link */}
-                        <div className="forgot-row">
-                            <span className="forgot-link">Forgot Password?</span>
-                        </div>
-
                         {/* Buttons */}
                         <div className="btn-row">
                             <button
