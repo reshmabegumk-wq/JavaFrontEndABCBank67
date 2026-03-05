@@ -147,7 +147,7 @@ const Layout = ({ children }) => {
                                         lineHeight: 1.2,
                                     }}
                                 >
-                                    ICICI Bank
+                                    ABC Bank
                                 </span>
                                 <span
                                     style={{
@@ -157,7 +157,7 @@ const Layout = ({ children }) => {
                                         letterSpacing: "0.5px",
                                     }}
                                 >
-                                    ADMIN DASHBOARD
+                                    CUSTOMER DASHBOARD
                                 </span>
                             </div>
                         </div>
